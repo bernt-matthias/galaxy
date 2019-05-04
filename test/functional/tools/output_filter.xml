@@ -9,18 +9,19 @@
     echo "test" > p1.forward;
     echo "test" > p1.reverse;
     echo "test" > p2.forward;
-	echo "test" > p2.reverse;
-	#if $produce_pair
-	   echo "test" > '$pair_output.forward'
-	   echo "test" > '$pair_output.reverse'
-	#end if
+    echo "test" > p2.reverse;
+    #if $produce_pair_explicit
+      echo "test" > '$pair_output.forward'
+      echo "test" > '$pair_output.reverse'
+    #end if
   </command>
   <inputs>
     <param name="produce_out_1" type="boolean" truevalue="true" falsevalue="false" checked="False" label="Do Filter 1" />
     <param name="filter_text_1" type="text" value="1" />
     <param name="produce_collection" type="boolean" truevalue="true" falsevalue="false" checked="False" label="list collection filter" />
     <param name="produce_paired_collection" type="boolean" truevalue="true" falsevalue="false" checked="False" label="list:paired Collection filter" />
-    <param name="produce_pair" type="boolean" truevalue="true" falsevalue="false" checked="False" label="paired collection filter" />
+    <param name="produce_pair_explicit" type="boolean" truevalue="true" falsevalue="false" checked="False" label="paired collection filter" />
+    <param name="produce_pair_discover" type="boolean" truevalue="true" falsevalue="false" checked="False" label="paired collection filter" />
   </inputs>
   <outputs>
     <data format="txt" from_work_dir="1" name="out_1">
@@ -40,10 +41,14 @@
       <discover_datasets pattern="(?P&lt;identifier_0&gt;p[12])\.(?P&lt;identifier_1&gt;.*)" ext="txt" visible="true" />
       <filter>produce_paired_collection is True</filter>
     </collection>
-    <collection name="pair_output" type="paired" label="paired">
+    <collection name="pair_output_explicit" type="paired" label="paired">
       <data name="forward" format="txt" />
       <data name="reverse" format="txt" />
-      <filter>produce_pair is True</filter>
+      <filter>produce_pair_explicit is True</filter>
+    </collection>
+    <collection name="pair_output_discover" type="paired" label="paired">
+      <discover_datasets pattern="p1.(?P&lt;name&gt;.*)" ext="txt" visible="true" />
+      <filter>produce_pair_discover is True</filter>
     </collection>
   </outputs>
   <tests>
@@ -102,10 +107,20 @@
     </test>
     <test expect_num_outputs="3">
       <param name="produce_out_1" value="true" />
-      <param name="produce_pair" value="true" />
+      <param name="produce_pair_explicit" value="true" />
       <output name="out_1"><assert_contents><has_line line="test" /></assert_contents></output>
       <output name="out_3"><assert_contents><has_line line="test" /></assert_contents></output>
-      <output_collection name="pair_output" type="paired" count="2">
+      <output_collection name="pair_output_explicit" type="paired" count="2">
+        <element name="forward"><assert_contents><has_line line="test" /></assert_contents></element>
+        <element name="reverse"><assert_contents><has_line line="test" /></assert_contents></element>
+      </output_collection>
+    </test>
+    <test expect_num_outputs="3">
+      <param name="produce_out_1" value="true" />
+      <param name="produce_pair_discover" value="true" />
+      <output name="out_1"><assert_contents><has_line line="test" /></assert_contents></output>
+      <output name="out_3"><assert_contents><has_line line="test" /></assert_contents></output>
+      <output_collection name="pair_output_discover" type="paired" count="2">
         <element name="forward"><assert_contents><has_line line="test" /></assert_contents></element>
         <element name="reverse"><assert_contents><has_line line="test" /></assert_contents></element>
       </output_collection>
