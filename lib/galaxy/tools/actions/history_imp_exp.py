@@ -119,6 +119,7 @@ class ExportHistoryToolAction(ToolAction):
         jeha = trans.app.model.JobExportHistoryArchive(job=job, history=history,
                                                        dataset=archive_dataset,
                                                        compressed=incoming['compress'])
+        log.error("JobExportHistoryArchive %s created with fda %s" %(jeha, jeha.fda))
         trans.sa_session.add(jeha)
 
         job_wrapper = JobExportHistoryArchiveWrapper(trans.app, job)
