@@ -3056,7 +3056,7 @@ class SplitCollectionByNumberTool(DatabaseOperationTool):
                 number_of_collections_out += 1
 
             for i in range(0, number_of_collections_out):
-                current_collection_elements = odict()
+                current_collection_elements = OrderedDict()
 
                 for j, dce in enumerate(iter_list, start=1):
                     dce_object = dce.element_object
@@ -3097,7 +3097,7 @@ class SplitCollectionByNumberTool(DatabaseOperationTool):
             for i, collection in enumerate(result):
                 if len(collection) == 0:
                     break
-                current_collection_elements = odict()
+                current_collection_elements = OrderedDict()
 
                 for dce in collection:
                     dce_object = dce.element_object
