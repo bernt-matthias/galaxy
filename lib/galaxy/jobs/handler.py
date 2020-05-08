@@ -207,6 +207,7 @@ class JobHandlerQueue(Monitors):
             self.sa_session.flush()
 
     def __recover_job_wrapper(self, job):
+        log.error("__recover_job_wrapper %s" % job.get_state())
         # Already dispatched and running
         job_wrapper = self.job_wrapper(job)
         # Use the persisted destination as its params may differ from
@@ -217,9 +218,11 @@ class JobHandlerQueue(Monitors):
         try:
             config_job_destination = self.app.job_config.get_destination(job.destination_id)
             job_destination.resubmit = config_job_destination.resubmit
+            log.error("__recover_job_wrapper %s %s" % (job_destination, dir(job_destination)))
         except KeyError:
             log.debug('(%s) Recovered destination id (%s) does not exist in job config (but this may be normal in the case of a dynamically generated destination)', job.id, job.destination_id)
-        job_wrapper.job_runner_mapper.cached_job_destination = job_destination
+        #CHANGED job_wrapper.job_runner_mapper.cached_job_destination = job_destination
+        job_wrapper.job_runner_mapper.cache_job_destination(job_destination)
         return job_wrapper
 
     def __monitor(self):

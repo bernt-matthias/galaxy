@@ -59,8 +59,11 @@ def eval_condition(condition, job_state):
 
 
 def failure(app, job_runner, job_state):
+    log.error("failure job_state %s" % job_state)
+    log.error("failure job_state.job_destination %s" % job_state.job_destination)
     # Leave handler quickly if no resubmit conditions specified or if the runner state doesn't allow resubmission.
     resubmit_definitions = job_state.job_destination.get('resubmit')
+    log.error("failure resubmit_definitions %s" % resubmit_definitions)
     if not resubmit_definitions:
         return
 
@@ -77,6 +80,7 @@ def failure(app, job_runner, job_state):
 
 
 def _handle_resubmit_definitions(resubmit_definitions, app, job_runner, job_state):
+    log.error("_handle_resubmit_definitions")
     runner_state = getattr(job_state, 'runner_state', None) or JobState.runner_states.UNKNOWN_ERROR
 
     # Setup environment for evaluating resubmission conditions and related expression.
@@ -107,13 +111,16 @@ def _handle_resubmit_definitions(resubmit_definitions, app, job_runner, job_stat
                  job_state.job_wrapper.job_destination.id)
         # fetch JobDestination for the id or tag
         if destination:
+            log.error("_handle_resubmit_definitions from app.job_config.get_destination")
             new_destination = app.job_config.get_destination(destination)
         else:
+            log.error("_handle_resubmit_definitions from job_state.job_destination")
             new_destination = job_state.job_destination
 
+        log.error("_handle_resubmit_definitions new_destination %s" % new_destination)
         # Resolve dynamic if necessary
-        new_destination = (job_state.job_wrapper.job_runner_mapper
-                           .cache_job_destination(new_destination))
+        # CHANGED new_destination = (job_state.job_wrapper.job_runner_mapper
+        # CHANGED                    .cache_job_destination(new_destination))
         # Reset job state
         job_state.job_wrapper.clear_working_directory()
         job_state.job_wrapper.invalidate_external_metadata()
@@ -128,8 +135,9 @@ def _handle_resubmit_definitions(resubmit_definitions, app, job_runner, job_stat
             job_runner.sa_session.flush()
         # Cache the destination to prevent rerunning dynamic after
         # resubmit
-        job_state.job_wrapper.job_runner_mapper \
-            .cached_job_destination = new_destination
+        # CHANGED THIS SHOULD NOT BE NECESSARY BECAUSE .cache_job_destination RAN JUST A FEW LINES ABOVE
+        # CHANGED job_state.job_wrapper.job_runner_mapper \
+        # CHANGED     .cached_job_destination = new_destination
         # Handle delaying before resubmission if needed.
         raw_delay = resubmit.get('delay')
         if raw_delay:
