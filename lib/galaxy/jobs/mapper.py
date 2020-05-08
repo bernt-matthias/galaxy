@@ -191,6 +191,7 @@ class JobRunnerMapper:
 
     def __handle_dynamic_job_destination(self, destination):
         expand_type = destination.params.get('type', "python")
+        log.error("__handle_dynamic_job_destination expand_type %s" % expand_type)
         expand_function = None
         if expand_type == "python":
             expand_function = self.__get_expand_function(destination)
@@ -219,10 +220,12 @@ class JobRunnerMapper:
         if raw_job_destination is None:
             raw_job_destination = self.job_wrapper.tool.get_job_destination(params)
         if raw_job_destination.runner == DYNAMIC_RUNNER_NAME:
+            log.error("__determine_job_destination DYNAMIC_RUNNER_NAME")
             job_destination = self.__handle_dynamic_job_destination(raw_job_destination)
-            log.debug("(%s) Mapped job to destination id: %s", self.job_wrapper.job_id, job_destination.id)
+            log.debug("(%s) Mapped job to destination id: %s %s", self.job_wrapper.job_id, job_destination.id, job_destination)
             # Recursively handle chained dynamic destinations
             if job_destination.runner == DYNAMIC_RUNNER_NAME:
+                log.error("__determine_job_destination RECURSION")
                 return self.__determine_job_destination(params, raw_job_destination=job_destination)
         else:
             job_destination = raw_job_destination
@@ -233,6 +236,7 @@ class JobRunnerMapper:
         try:
             self.cached_job_destination = self.__determine_job_destination(params, raw_job_destination=raw_job_destination)
         except (JobMappingConfigurationException, JobMappingException, JobNotReadyException):
+            log.error("__cache_job_destination: SILENT EXCEPTION")
             raise
         except Exception:
             # Other exceptions should not bubble up to the job wrapper since they can occur during the fail() method,
@@ -247,6 +251,7 @@ class JobRunnerMapper:
         externally set to short-circuit the mapper, such as during resubmits.
         get_job_destination will respect that and not run the mapper if so.
         """
+        log.error("JobRunnerMapper self.cached_job_destination %s %s" % (hasattr(self, 'cached_job_destination'), params))
         if not hasattr(self, 'cached_job_destination'):
             return self.__cache_job_destination(params)
         return self.cached_job_destination
@@ -256,5 +261,6 @@ class JobRunnerMapper:
         Force update of cached_job_destination to mapper determined job
         destination, overwriting any externally set cached_job_destination
         """
+        log.error("cache_job_destination ")
         return self.__cache_job_destination(
             None, raw_job_destination=raw_job_destination)
