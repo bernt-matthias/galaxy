@@ -89,7 +89,6 @@ class JobDestination(Bunch):
     """
 
     def __init__(self, **kwds):
-        log.error("JobDestination.__init__ %s "% kwds)
         self['id'] = None
         self['url'] = None
         self['tags'] = None
@@ -399,7 +398,6 @@ class JobConfiguration(ConfiguresHandlers):
         job_metrics = self.app.job_metrics
         execution_dict = job_config_dict.get('execution', {})
         environments = execution_dict.get("environments", [])
-        log.error("_configure_from_dict environments %s" % environments)
         enviroment_iter = map(lambda e: (e["id"], e), environments) if isinstance(environments, list) else environments.items()
         for environment_id, environment_dict in enviroment_iter:
             metrics = environment_dict.get("metrics")
@@ -454,7 +452,6 @@ class JobConfiguration(ConfiguresHandlers):
 
         # Determine the default destination
         self.default_destination_id = self._ensure_default_set(execution_dict.get("default"), list(self.destinations.keys()), auto=True)
-        log.error("self.default_destination_id %s" % self.default_destination_id)
 
         # Read in resources
         resources = job_config_dict.get("resources", {})
@@ -913,7 +910,6 @@ class JobWrapper(HasResourceParameters):
         if job.params:
             self.params = loads(job.params)
         if use_persisted_destination:
-            log.error("JobWrapper.__init__ use_persisted_destination")
             self.job_runner_mapper.cached_job_destination = JobDestination(from_job=job)
         # Wrapper holding the info required to restore and clean up from files used for setting metadata externally
         try:
@@ -1032,14 +1028,6 @@ class JobWrapper(HasResourceParameters):
 
         :returns: ``JobDestination``
         """
-        log.error("JobWrapper.job_destination params %s" % self.params)
-        log.error("JobWrapper.job_destination return %s" % self.job_runner_mapper.get_job_destination(self.params))
-#         from io import StringIO
-#         import traceback
-#         logio = StringIO()
-#         traceback.print_stack(file=logio)
-#         log.error("JobWrapper.job_destination %s" % logio.getvalue())
-#         logio.close()
         return self.job_runner_mapper.get_job_destination(self.params)
 
     def get_job(self):
@@ -1370,7 +1358,6 @@ class JobWrapper(HasResourceParameters):
         return True
 
     def mark_as_resubmitted(self, info=None):
-        log.error("mark_as_resubmitted %s" % self.job_runner_mapper)
         job = self.get_job()
         self.sa_session.refresh(job)
         if info is not None:
