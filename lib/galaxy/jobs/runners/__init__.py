@@ -457,10 +457,7 @@ class BaseJobRunner:
 
     def _handle_runner_state(self, runner_state, job_state):
         try:
-            log.error("_handle_runner_state runner_state %s" % runner_state)
-            log.error("_handle_runner_state %s handlers" % len(self.runner_state_handlers.get(runner_state, [])))
             for handler in self.runner_state_handlers.get(runner_state, []):
-                log.error("_handle_runner_state handler %s" % handler)
                 handler(self.app, self, job_state)
                 if job_state.runner_state_handled:
                     break
