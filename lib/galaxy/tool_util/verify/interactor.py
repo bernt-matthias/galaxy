@@ -731,8 +731,7 @@ def verify_collection(output_collection_def, data_collection, verify_dataset):
         return False
 
     def verify_elements(element_objects, element_tests):
-        # sorted_test_ids = [None] * len(element_tests)
-        expected_sort_order = []
+        expected_sort_order = {}
 
         eo_ids = [_["element_identifier"] for _ in element_objects]
         for element_identifier, element_test in element_tests.items():
@@ -741,12 +740,12 @@ def verify_collection(output_collection_def, data_collection, verify_dataset):
             else:
                 element_outfile, element_attrib = element_test
             if 'expected_sort_order' in element_attrib:
-                expected_sort_order.append(element_identifier)
+                expected_sort_order[element_attrib['expected_sort_order']] = element_identifier
 
             element = get_element(element_objects, element_identifier)
             if not element:
-                template = "Failed to find identifier '%s' in the tool generated collection elements %s"
-                message = template % (element_identifier, eo_ids)
+                template = "Output collection [%s]: Failed to find identifier '%s' in the tool generated collection elements %s"
+                message = template % (name, element_identifier, eo_ids)
                 raise AssertionError(message)
 
             element_type = element["element_type"]
@@ -757,18 +756,15 @@ def verify_collection(output_collection_def, data_collection, verify_dataset):
                 verify_elements(elements, element_attrib.get("elements", {}))
 
         if len(expected_sort_order) > 0:
+            generated_sort_order = [_["element_identifier"] for _ in element_objects]
             i = 0
-            for element_identifier in expected_sort_order:
-                element = None
-                while i < len(element_objects):
-                    if element_objects[i]["element_identifier"] == element_identifier:
-                        element = element_objects[i]
-                        i += 1
-                        break
-                    i += 1
-                if element is None:
-                    template = "Collection identifier '%s' found out of order, expected order of %s for the tool generated collection elements %s"
-                    message = template % (element_identifier, expected_sort_order, eo_ids)
+            for element_index in sorted(expected_sort_order.keys()):
+                identifier = expected_sort_order[element_index]
+                try:
+                    i = generated_sort_order[i:].index(identifier) + 1
+                except ValueError:
+                    template = "Output collection [%s]: identifier '%s' found out of order, expected order of %s for the tool generated collection elements %s"
+                    message = template % (name, element_identifier, expected_sort_order, eo_ids)
                     raise AssertionError(message)
 
     verify_elements(data_collection["elements"], output_collection_def.element_tests)
@@ -1016,9 +1012,9 @@ def _verify_outputs(testdef, history, jobs, tool_id, data_list, data_collection_
                     print(_format_stream(job_stdio[stream], stream=stream, format=True), file=sys.stderr)
         found_exceptions.append(e)
 
-    if testdef.expect_failure:
-        if testdef.outputs:
-            raise Exception("Cannot specify outputs in a test expecting failure.")
+    # if testdef.expect_failure:
+    #     if testdef.outputs:
+    #         raise Exception("Cannot specify outputs in a test expecting failure.")
 
     # Wait for the job to complete and register expections if the final
     # status was not what test was expecting.
@@ -1122,7 +1118,7 @@ def _verify_outputs(testdef, history, jobs, tool_id, data_list, data_collection_
         except Exception as e:
             register_exception(e)
 
-    if found_exceptions:
+    if found_exceptions and not testdef.expect_failure:
         raise JobOutputsError(found_exceptions, job_stdio)
     else:
         return job_stdio
