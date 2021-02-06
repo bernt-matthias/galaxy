@@ -40,7 +40,10 @@ from galaxy.job_execution.datasets import (
     TaskPathRewriter
 )
 from galaxy.job_execution.output_collect import collect_extra_files
-from galaxy.job_execution.setup import ensure_configs_directory
+from galaxy.job_execution.setup import (
+    create_working_directory_for_job,
+    ensure_configs_directory,
+)
 from galaxy.jobs.actions.post import ActionBox
 from galaxy.jobs.mapper import (
     JobMappingException,
@@ -569,7 +572,15 @@ class JobConfiguration(ConfiguresHandlers):
             resource_group = resource_group or self.default_resource_group
             if resource_group and resource_group in self.resource_groups:
                 fields_names = self.resource_groups[resource_group]
-                fields = [self.resource_parameters[n] for n in fields_names]
+                fields = []
+                for field_name in fields_names:
+                    if field_name not in self.resource_parameters:
+                        message = "Failed to find field for resource {} in resource parameters {}".format(
+                            field_name, self.resource_parameters
+                        )
+                        raise KeyError(message)
+                    fields.append(self.resource_parameters[field_name])
+
                 if fields:
                     conditional_element = parse_xml_string(self.JOB_RESOURCE_CONDITIONAL_XML)
                     when_yes_elem = conditional_element.findall('when')[1]
@@ -795,7 +806,7 @@ class JobConfiguration(ConfiguresHandlers):
                     log.warning("A non-class name was found in __all__, ignoring: %s" % id)
                     continue
                 except AssertionError:
-                    log.warning("Job runner classes must be subclassed from BaseJobRunner, {} has bases: {}".format(id, runner_class.__bases__))
+                    log.warning(f"Job runner classes must be subclassed from BaseJobRunner, {id} has bases: {runner_class.__bases__}")
                     continue
                 try:
                     rval[id] = runner_class(self.app, runner.get('workers', JobConfiguration.DEFAULT_NWORKERS), **runner.get('kwds', {}))
@@ -803,7 +814,7 @@ class JobConfiguration(ConfiguresHandlers):
                     log.exception("Job runner '%s:%s' has not been converted to a new-style runner or encountered TypeError on load",
                                   module_name, class_name)
                     rval[id] = runner_class(self.app)
-                log.debug("Loaded job runner '{}:{}' as '{}'".format(module_name, class_name, id))
+                log.debug(f"Loaded job runner '{module_name}:{class_name}' as '{id}'")
         return rval
 
     def is_id(self, collection):
@@ -839,13 +850,13 @@ class JobConfiguration(ConfiguresHandlers):
                     destination.params = job_runners[destination.runner].url_to_destination(destination.url).params
                     destination.converted = True
                     if destination.params:
-                        log.debug("Legacy destination with id '{}', url '{}' converted, got params:".format(id, destination.url))
+                        log.debug(f"Legacy destination with id '{id}', url '{destination.url}' converted, got params:")
                         for k, v in destination.params.items():
-                            log.debug("    {}: {}".format(k, v))
+                            log.debug(f"    {k}: {v}")
                     else:
-                        log.debug("Legacy destination with id '{}', url '{}' converted, got params:".format(id, destination.url))
+                        log.debug(f"Legacy destination with id '{id}', url '{destination.url}' converted, got params:")
                 else:
-                    log.warning("Legacy destination with id '{}' could not be converted: Unknown runner plugin: {}".format(id, destination.runner))
+                    log.warning(f"Legacy destination with id '{id}' could not be converted: Unknown runner plugin: {destination.runner}")
 
 
 class HasResourceParameters:
@@ -1128,7 +1139,7 @@ class JobWrapper(HasResourceParameters):
         if version_string_cmd_raw:
             version_command_template = string.Template(version_string_cmd_raw)
             version_string_cmd = version_command_template.safe_substitute({"__tool_directory__": compute_environment.tool_directory()})
-            self.write_version_cmd = "{} > {} 2>&1".format(version_string_cmd, compute_environment.version_path())
+            self.write_version_cmd = f"{version_string_cmd} > {compute_environment.version_path()} 2>&1"
         else:
             self.write_version_cmd = None
         return self.extra_filenames
@@ -1182,11 +1193,7 @@ class JobWrapper(HasResourceParameters):
         return os.path.join(self.working_directory, "working")
 
     def _create_working_directory(self, job):
-        self.object_store.create(
-            job, base_dir='job_work', dir_only=True, obj_dir=True)
-        working_directory = self.object_store.get_filename(
-            job, base_dir='job_work', dir_only=True, obj_dir=True)
-        return working_directory
+        return create_working_directory_for_job(self.object_store, job)
 
     def clear_working_directory(self):
         job = self.get_job()
@@ -1303,8 +1310,6 @@ class JobWrapper(HasResourceParameters):
                 # Pause any dependent jobs (and those jobs' outputs)
                 for dep_job_assoc in dataset.dependent_jobs:
                     self.pause(dep_job_assoc.job, "Execution of this dataset's job is paused because its input datasets are in an error state.")
-                self.sa_session.add(dataset)
-                self.sa_session.flush()
             job.set_final_state(job.states.ERROR)
             job.command_line = unicodify(self.command_line)
             job.info = message
@@ -1411,7 +1416,7 @@ class JobWrapper(HasResourceParameters):
         """
         if job is None:
             job = self.get_job()
-        log.debug('({}) Persisting job destination (destination id: {})'.format(job.id, job_destination.id))
+        log.debug(f'({job.id}) Persisting job destination (destination id: {job_destination.id})')
         job.destination_id = job_destination.id
         job.destination_params = job_destination.params
         job.job_runner_name = job_destination.runner
@@ -1528,6 +1533,8 @@ class JobWrapper(HasResourceParameters):
             # it would be quicker to just copy the metadata from the originating output dataset,
             # but somewhat trickier (need to recurse up the copied_from tree), for now we'll call set_meta()
             retry_internally = util.asbool(self.get_destination_configuration("retry_metadata_internally", True))
+            if not retry_internally and self.tool.tool_type == 'interactive':
+                retry_internally = util.asbool(self.get_destination_configuration("retry_interactivetool_metadata_internally", retry_internally))
             metadata_set_successfully = self.external_output_metadata.external_metadata_set_successfully(dataset, output_name, self.sa_session, working_directory=self.working_directory)
             if retry_internally and not metadata_set_successfully:
                 # If Galaxy was expected to sniff type and didn't - do so.
@@ -1593,7 +1600,7 @@ class JobWrapper(HasResourceParameters):
         try:
             self.reclaim_ownership()
         except Exception:
-            log.exception('({}) Failed to change ownership of {}, failing'.format(job.id, self.working_directory))
+            log.exception(f'({job.id}) Failed to change ownership of {self.working_directory}, failing')
             return fail()
 
         # if the job was deleted, don't finish it
@@ -1640,7 +1647,7 @@ class JobWrapper(HasResourceParameters):
             for dataset_path in self.get_output_fnames():
                 try:
                     shutil.move(dataset_path.false_path, dataset_path.real_path)
-                    log.debug("finish(): Moved {} to {}".format(dataset_path.false_path, dataset_path.real_path))
+                    log.debug(f"finish(): Moved {dataset_path.false_path} to {dataset_path.real_path}")
                 except OSError:
                     # this can happen if Galaxy is restarted during the job's
                     # finish method - the false_path file has already moved,
@@ -1660,7 +1667,7 @@ class JobWrapper(HasResourceParameters):
                 import_model_store = store.get_import_model_store_for_directory(os.path.join(self.working_directory, 'metadata', 'outputs_populated'), app=self.app, import_options=import_options)
                 import_model_store.perform_import(history=job.history)
             except Exception:
-                log.exception("problem importing job outputs. stdout [{}] stderr [{}]".format(job.stdout, job.stderr))
+                log.exception(f"problem importing job outputs. stdout [{job.stdout}] stderr [{job.stderr}]")
                 raise
         output_dataset_associations = job.output_datasets + job.output_library_datasets
         for dataset_assoc in output_dataset_associations:
@@ -1722,7 +1729,11 @@ class JobWrapper(HasResourceParameters):
         # Certain tools require tasks to be completed after job execution
         # ( this used to be performed in the "exec_after_process" hook, but hooks are deprecated ).
         param_dict = self.get_param_dict(job)
-        self.tool.exec_after_process(self.app, inp_data, out_data, param_dict, job=job, final_job_state=final_job_state)
+        try:
+            self.tool.exec_after_process(self.app, inp_data, out_data, param_dict, job=job, final_job_state=final_job_state)
+        except Exception:
+            log.exception(f"exec_after_process hook failed for job {self.job_id}")
+            final_job_state = job.states.ERROR
         # Call 'exec_after_process' hook
         self.tool.call_hook('exec_after_process', self.app, inp_data=inp_data,
                             out_data=out_data, param_dict=param_dict,
@@ -1825,7 +1836,6 @@ class JobWrapper(HasResourceParameters):
                         if e.errno != errno.ENOENT:
                             raise
                 self.external_output_metadata.cleanup_external_metadata(self.sa_session)
-            galaxy.tools.imp_exp.JobImportHistoryArchiveWrapper(self.app, self.job_id).cleanup_after_job()
             if delete_files:
                 self.object_store.delete(self.get_job(), base_dir='job_work', entire_dir=True, dir_only=True, obj_dir=True)
         except Exception:
@@ -1882,14 +1892,14 @@ class JobWrapper(HasResourceParameters):
     def get_env_setup_clause(self):
         if self.app.config.environment_setup_file is None:
             return ''
-        return '[ -f "{}" ] && . {}'.format(self.app.config.environment_setup_file, self.app.config.environment_setup_file)
+        return f'[ -f "{self.app.config.environment_setup_file}" ] && . {self.app.config.environment_setup_file}'
 
     def get_input_dataset_fnames(self, ds):
         filenames = []
         filenames = [ds.file_name]
         # we will need to stage in metadata file names also
         # TODO: would be better to only stage in metadata files that are actually needed (found in command line, referenced in config files, etc.)
-        for key, value in ds.metadata.items():
+        for value in ds.metadata.values():
             if isinstance(value, model.MetadataFile):
                 filenames.append(value.file_name)
         return filenames
@@ -1934,13 +1944,13 @@ class JobWrapper(HasResourceParameters):
     def get_output_path(self, dataset):
         if getattr(dataset, "fake_dataset_association", False):
             return dataset.file_name
-        assert dataset.id is not None, "{} needs to be flushed to find output path".format(dataset)
+        assert dataset.id is not None, f"{dataset} needs to be flushed to find output path"
         if self.output_paths is None:
             self.compute_outputs()
         for (hda, dataset_path) in self.output_hdas_and_paths.values():
             if hda.id == dataset.id:
                 return dataset_path
-        raise KeyError("Couldn't find job output for [{}] in [{}]".format(dataset, self.output_hdas_and_paths.values()))
+        raise KeyError(f"Couldn't find job output for [{dataset}] in [{self.output_hdas_and_paths.values()}]")
 
     def get_mutable_output_fnames(self):
         if self.output_paths is None:
@@ -2102,7 +2112,7 @@ class JobWrapper(HasResourceParameters):
                 dependency_shell_commands = metadata_tool.build_dependency_shell_commands(job_directory=self.working_directory, metadata=True)
                 if dependency_shell_commands:
                     dependency_shell_commands = "; ".join(dependency_shell_commands)
-                    command = "{}; {}".format(dependency_shell_commands, command)
+                    command = f"{dependency_shell_commands}; {command}"
         return command
 
     def check_for_entry_points(self, check_already_configured=True):
@@ -2215,7 +2225,7 @@ class JobWrapper(HasResourceParameters):
     def change_ownership_for_run(self):
         job = self.get_job()
         external_chown_script = self.get_destination_configuration("external_chown_script", None)
-        if job.user is not None and external_chown_script is not None:
+        if job.user is not None and external_chown_script:
             ret = external_chown(self.working_directory, self.user_system_pwent,
                            external_chown_script, description="working directory")
             if not ret:
@@ -2224,7 +2234,7 @@ class JobWrapper(HasResourceParameters):
     def reclaim_ownership(self):
         job = self.get_job()
         external_chown_script = self.get_destination_configuration("external_chown_script", None)
-        if job.user is not None:
+        if job.user is not None and external_chown_script:
             external_chown(self.working_directory, self.galaxy_system_pwent,
                            external_chown_script, description="working directory")
 

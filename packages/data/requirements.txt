@@ -8,6 +8,7 @@ isa-rwval
 parsley
 numpy
 pycryptodome
+pydantic
 pysam
 social-auth-core[openidconnect]==3.3.0
 SQLAlchemy

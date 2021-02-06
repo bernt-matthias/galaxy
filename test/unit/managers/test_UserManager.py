@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 User Manager testing.
 
@@ -8,7 +7,6 @@ import json
 import unittest
 from datetime import datetime, timedelta
 
-from six import string_types
 from sqlalchemy import desc
 
 from galaxy import exceptions, model
@@ -118,7 +116,7 @@ class UserManagerTestCase(BaseTestCase):
 
         self.log("should be able to generate and retrieve valid api key")
         user2_api_key = self.user_manager.create_api_key(user2)
-        self.assertIsInstance(user2_api_key, string_types)
+        self.assertIsInstance(user2_api_key, str)
         self.assertEqual(self.user_manager.valid_api_key(user2).key, user2_api_key)
 
         self.log("should return the most recent (i.e. most valid) api key")
@@ -226,7 +224,7 @@ class UserManagerTestCase(BaseTestCase):
 class UserSerializerTestCase(BaseTestCase):
 
     def set_up_managers(self):
-        super(UserSerializerTestCase, self).set_up_managers()
+        super().set_up_managers()
         self.user_serializer = users.UserSerializer(self.app)
 
     def test_views(self):
@@ -243,9 +241,9 @@ class UserSerializerTestCase(BaseTestCase):
         self.log('should have a serializer for all serializable keys')
         for key in self.user_serializer.serializable_keyset:
             instantiated_attribute = getattr(user, key, None)
-            if not ((key in self.user_serializer.serializers) or
-                    (isinstance(instantiated_attribute, self.TYPES_NEEDING_NO_SERIALIZERS))):
-                self.fail('no serializer for: %s (%s)' % (key, instantiated_attribute))
+            if not ((key in self.user_serializer.serializers)
+                    or (isinstance(instantiated_attribute, self.TYPES_NEEDING_NO_SERIALIZERS))):
+                self.fail(f'no serializer for: {key} ({instantiated_attribute})')
         else:
             self.assertTrue(True, 'all serializable keys have a serializer')
 
@@ -279,7 +277,7 @@ class UserSerializerTestCase(BaseTestCase):
         # self.assertIsInstance( serialized[ 'active' ], bool )
         self.assertIsInstance(serialized['is_admin'], bool)
         self.assertIsInstance(serialized['total_disk_usage'], float)
-        self.assertIsInstance(serialized['nice_total_disk_usage'], string_types)
+        self.assertIsInstance(serialized['nice_total_disk_usage'], str)
         self.assertIsInstance(serialized['quota_percent'], (type(None), float))
         self.assertIsInstance(serialized['tags_used'], list)
 
@@ -290,7 +288,7 @@ class UserSerializerTestCase(BaseTestCase):
 class CurrentUserSerializerTestCase(BaseTestCase):
 
     def set_up_managers(self):
-        super(CurrentUserSerializerTestCase, self).set_up_managers()
+        super().set_up_managers()
         self.history_manager = histories.HistoryManager(self.app)
         self.user_serializer = users.CurrentUserSerializer(self.app)
 
@@ -308,7 +306,7 @@ class CurrentUserSerializerTestCase(BaseTestCase):
         self.assertEqual(serialized['id'], None)
         self.log('everything serialized should be of the proper type')
         self.assertIsInstance(serialized['total_disk_usage'], float)
-        self.assertIsInstance(serialized['nice_total_disk_usage'], string_types)
+        self.assertIsInstance(serialized['nice_total_disk_usage'], str)
         self.assertIsInstance(serialized['quota_percent'], (type(None), float))
 
         self.log('serialized should jsonify well')
@@ -319,7 +317,7 @@ class CurrentUserSerializerTestCase(BaseTestCase):
 class UserDeserializerTestCase(BaseTestCase):
 
     def set_up_managers(self):
-        super(UserDeserializerTestCase, self).set_up_managers()
+        super().set_up_managers()
         self.deserializer = users.UserDeserializer(self.app)
 
     def _assertRaises_and_return_raised(self, exception_class, fn, *args, **kwargs):
@@ -328,7 +326,7 @@ class UserDeserializerTestCase(BaseTestCase):
         except exception_class as exception:
             self.assertTrue(True)
             return exception
-        assert False, '%s not raised' % (exception_class.__name__)
+        raise AssertionError(f'{exception_class.__name__} not raised')
 
     def test_username_validation(self):
         user = self.user_manager.create(**user2_data)
@@ -358,7 +356,7 @@ class UserDeserializerTestCase(BaseTestCase):
 class AdminUserFilterParserTestCase(BaseTestCase):
 
     def set_up_managers(self):
-        super(AdminUserFilterParserTestCase, self).set_up_managers()
+        super().set_up_managers()
         self.filter_parser = users.AdminUserFilterParser(self.app)
 
     def test_parsable(self):
