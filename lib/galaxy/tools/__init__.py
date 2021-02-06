@@ -2846,8 +2846,13 @@ class BuildListCollectionTool(DatabaseOperationTool):
 
         for i, incoming_repeat in enumerate(incoming["datasets"]):
             new_dataset = incoming_repeat["input"].copy(copy_tags=tags)
-            new_elements["%d" % i] = new_dataset
-
+            if incoming_repeat["id_cond"]["id_select"] == 'idx':
+                identifier = str(i)
+            elif incoming_repeat["id_cond"]["id_select"] == 'identifier':
+                identifier = incoming_repeat["input"].element_identifier
+            elif incoming_repeat["id_cond"]["id_select"] == 'manual':
+                identifier = incoming_repeat["id_cond"]["identifier"]
+            new_elements[identifier] = new_dataset
         self._add_datasets_to_history(history, new_elements.values())
         output_collections.create_collection(
             next(iter(self.outputs.values())), "output", elements=new_elements
