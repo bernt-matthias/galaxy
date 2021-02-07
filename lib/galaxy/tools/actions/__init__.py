@@ -12,7 +12,6 @@ from galaxy.jobs.actions.post import ActionBox
 from galaxy.model import LibraryDatasetDatasetAssociation, WorkflowRequestInputParameter
 from galaxy.model.dataset_collections.builder import CollectionBuilder
 from galaxy.model.none_like import NoneDataset
-from galaxy.objectstore import ObjectStorePopulator
 from galaxy.tools.parameters import update_dataset_ids
 from galaxy.tools.parameters.basic import DataCollectionToolParameter, DataToolParameter, RuntimeValue
 from galaxy.tools.parameters.wrapped import WrappedParameters
@@ -378,7 +377,6 @@ class DefaultToolAction:
         # datasets first, then create the associations
         parent_to_child_pairs = []
         child_dataset_names = set()
-        object_store_populator = ObjectStorePopulator(app, trans.user)
         async_tool = tool.tool_type == 'data_source_async'
 
         def handle_output(name, output, hidden=None):
@@ -428,12 +426,7 @@ class DefaultToolAction:
                 trans.sa_session.add(data)
                 if not completed_job:
                     trans.app.security_agent.set_all_dataset_permissions(data.dataset, output_permissions, new=True, flush=False)
-            data.copy_tags_to(preserved_tags)
-
-            if not completed_job and trans.app.config.legacy_eager_objectstore_initialization:
-                # Must flush before setting object store id currently.
-                trans.sa_session.flush()
-                object_store_populator.set_object_store_id(data)
+            data.copy_tags_to(preserved_tags.values())
 
             # This may not be neccesary with the new parent/child associations
             data.designation = name
@@ -474,7 +467,7 @@ class DefaultToolAction:
             return data
 
         for name, output in tool.outputs.items():
-            if not filter_output(output, incoming):
+            if not filter_output(tool, output, incoming):
                 handle_output_timer = ExecutionTimer()
                 if output.collection:
                     if completed_job and dataset_collection_elements and name in dataset_collection_elements:
@@ -532,10 +525,10 @@ class DefaultToolAction:
                         completed_job=completed_job,
                         **element_kwds
                     )
-                    log.info("Handled collection output named {} for tool {} {}".format(name, tool.id, handle_output_timer))
+                    log.info(f"Handled collection output named {name} for tool {tool.id} {handle_output_timer}")
                 else:
                     handle_output(name, output)
-                    log.info("Handled output named {} for tool {} {}".format(name, tool.id, handle_output_timer))
+                    log.info(f"Handled output named {name} for tool {tool.id} {handle_output_timer}")
 
         add_datasets_timer = tool.app.execution_timer_factory.get_timer(
             'internals.galaxy.tools.actions.add_datasets',
@@ -561,7 +554,6 @@ class DefaultToolAction:
         # execute immediate post job actions and associate post job actions that are to be executed after the job is complete
         if job_callback:
             job_callback(job)
-        job.object_store_id = object_store_populator.object_store_id
         if job_params:
             job.params = dumps(job_params)
         if completed_job:
@@ -572,14 +564,14 @@ class DefaultToolAction:
         if app.config.track_jobs_in_database and rerun_remap_job_id is not None:
             # We need a flush here and get hids in order to rewrite jobs parameter,
             # but remapping jobs should only affect single jobs anyway, so this is not too costly.
-            history.add_pending_datasets(set_output_hid=set_output_hid)
+            history.add_pending_items(set_output_hid=set_output_hid)
             trans.sa_session.flush()
             self._remap_job_on_rerun(trans=trans,
                                      galaxy_session=galaxy_session,
                                      rerun_remap_job_id=rerun_remap_job_id,
                                      current_job=job,
                                      out_data=out_data)
-        log.info("Setup for job {} complete, ready to be enqueued {}".format(job.log_str(), job_setup_timer))
+        log.info(f"Setup for job {job.log_str()} complete, ready to be enqueued {job_setup_timer}")
 
         # Some tools are not really executable, but jobs are still created for them ( for record keeping ).
         # Examples include tools that redirect to other applications ( epigraph ).  These special tools must
@@ -604,10 +596,10 @@ class DefaultToolAction:
         else:
             if flush_job:
                 # Set HID and add to history.
-                history.add_pending_datasets(set_output_hid=set_output_hid)
+                history.add_pending_items(set_output_hid=set_output_hid)
                 job_flush_timer = ExecutionTimer()
                 trans.sa_session.flush()
-                log.info("Flushed transaction for job {} {}".format(job.log_str(), job_flush_timer))
+                log.info(f"Flushed transaction for job {job.log_str()} {job_flush_timer}")
 
                 # Dispatch to a job handler. enqueue() is responsible for flushing the job
                 app.job_manager.enqueue(job, tool=tool)
@@ -624,14 +616,14 @@ class DefaultToolAction:
         """
         try:
             old_job = trans.sa_session.query(trans.app.model.Job).get(rerun_remap_job_id)
-            assert old_job is not None, '({}/{}): Old job id is invalid'.format(rerun_remap_job_id, current_job.id)
-            assert old_job.tool_id == current_job.tool_id, '({}/{}): Old tool id ({}) does not match rerun tool id ({})'.format(old_job.id, current_job.id, old_job.tool_id, current_job.tool_id)
+            assert old_job is not None, f'({rerun_remap_job_id}/{current_job.id}): Old job id is invalid'
+            assert old_job.tool_id == current_job.tool_id, f'({old_job.id}/{current_job.id}): Old tool id ({old_job.tool_id}) does not match rerun tool id ({current_job.tool_id})'
             if trans.user is not None:
-                assert old_job.user_id == trans.user.id, '({}/{}): Old user id ({}) does not match rerun user id ({})'.format(old_job.id, current_job.id, old_job.user_id, trans.user.id)
+                assert old_job.user_id == trans.user.id, f'({old_job.id}/{current_job.id}): Old user id ({old_job.user_id}) does not match rerun user id ({trans.user.id})'
             elif trans.user is None and type(galaxy_session) == trans.model.GalaxySession:
-                assert old_job.session_id == galaxy_session.id, '({}/{}): Old session id ({}) does not match rerun session id ({})'.format(old_job.id, current_job.id, old_job.session_id, galaxy_session.id)
+                assert old_job.session_id == galaxy_session.id, f'({old_job.id}/{current_job.id}): Old session id ({old_job.session_id}) does not match rerun session id ({galaxy_session.id})'
             else:
-                raise Exception('({}/{}): Remapping via the API is not (yet) supported'.format(old_job.id, current_job.id))
+                raise Exception(f'({old_job.id}/{current_job.id}): Remapping via the API is not (yet) supported')
             # Duplicate PJAs before remap.
             for pjaa in old_job.post_job_actions:
                 current_job.add_post_job_action(pjaa.post_job_action)
@@ -687,7 +679,7 @@ class DefaultToolAction:
             p.value = json.dumps(input_values[p.name])
         jtid.dataset = out_data[jtod.name]
         jtid.dataset.hid = jtod.dataset.hid
-        log.info('Job {} input HDA {} remapped to new HDA {}'.format(job_to_remap.id, jtod.dataset.id, jtid.dataset.id))
+        log.info(f'Job {job_to_remap.id} input HDA {jtod.dataset.id} remapped to new HDA {jtid.dataset.id}')
 
     def _wrapped_params(self, trans, tool, incoming, input_datasets=None):
         wrapped_params = WrappedParameters(trans, tool, incoming, input_datasets=input_datasets)
@@ -793,11 +785,13 @@ class DefaultToolAction:
         """
         This allows to map names of input files to metadata default values. Example:
 
-        <data format="tabular" name="output" label="Tabular output, aggregates data from individual_inputs" >
-            <actions>
-                <action name="column_names" type="metadata" default="${','.join(input.name for input in $individual_inputs)}" />
-            </actions>
-        </data>
+        .. code-block::
+
+            <data format="tabular" name="output" label="Tabular output, aggregates data from individual_inputs" >
+                <actions>
+                    <action name="column_names" type="metadata" default="${','.join(input.name for input in $individual_inputs)}" />
+                </actions>
+            </data>
         """
         if output.actions:
             for action in output.actions.actions:
@@ -950,13 +944,13 @@ def on_text_for_names(input_names):
     return on_text
 
 
-def filter_output(output, incoming):
+def filter_output(tool, output, incoming):
     for filter in output.filters:
         try:
             if not eval(filter.text.strip(), globals(), incoming):
                 return True  # do not create this dataset
         except Exception as e:
-            log.debug('Dataset output filter failed: %s' % e)
+            log.debug('Tool %s output %s: dataset output filter (%s) failed: %s' % (tool.id, output.name, filter.text, e))
     return False
 
 
