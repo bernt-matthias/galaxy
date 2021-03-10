@@ -444,6 +444,8 @@ class MulledDockerContainerResolver(CliContainerResolver):
 
     def resolve(self, enabled_container_types, tool_info, install=False, session=None, **kwds):
         log.error("MulledDockerContainerResolver.resolve")
+        log.error(f"\tenabled_container_types {enabled_container_types}")
+        log.error(f"\ttool_info {tool_info}")
         resolution_cache = kwds.get("resolution_cache")
         if tool_info.requires_galaxy_python_environment or self.container_type not in enabled_container_types:
             return None
@@ -453,6 +455,8 @@ class MulledDockerContainerResolver(CliContainerResolver):
             return None
 
         name = targets_to_mulled_name(targets=targets, hash_func=self.hash_func, namespace=self.namespace, resolution_cache=resolution_cache, session=session)
+        log.error(f"\ttargets {targets}")
+        log.error(f"\tname {name}")
         if name:
             container_id = f"quay.io/{self.namespace}/{name}"
             if self.protocol:
@@ -462,6 +466,8 @@ class MulledDockerContainerResolver(CliContainerResolver):
                 type=self.container_type,
                 shell=self.shell,
             )
+            log.error(f"\tcontainer_id {container_id}")
+            log.error(f"\tcontainer_description {container_description}")
             if self.can_list_containers:
                 if install and not self.cached_container_description(
                         targets,
@@ -516,7 +522,7 @@ class MulledSingularityContainerResolver(SingularityCliContainerResolver, Mulled
 
     def pull(self, container):
         log.error("MulledSingularityContainerResolver.pull")
-        raise Exception()
+        log.error(f"\tcontainer {container}")
         if self.cli_available:
             cmds = container.build_mulled_singularity_pull_command(cache_directory=self.cache_directory, namespace=self.namespace)
             shell(cmds=cmds)
