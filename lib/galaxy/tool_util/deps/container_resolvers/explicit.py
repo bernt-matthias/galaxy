@@ -22,6 +22,7 @@ class ExplicitContainerResolver(ContainerResolver):
         This ignores the tool requirements and assumes the tool author crafted
         a correct container.
         """
+        log.error("ExplicitContainerResolver.resolve")
         for container_description in tool_info.container_descriptions:
             if self._container_type_enabled(container_description, enabled_container_types):
                 container_description.explicit = True
@@ -42,6 +43,8 @@ class ExplicitSingularityContainerResolver(ExplicitContainerResolver):
         a correct container. We use singularity here to fetch docker containers,
         hence the container_description hack here.
         """
+        log.error("ExplicitSingularityContainerResolver.resolve")
+        
         for container_description in tool_info.container_descriptions:
             if container_description.type == 'docker':
                 desc_dict = container_description.to_dict()

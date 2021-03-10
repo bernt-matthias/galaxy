@@ -378,6 +378,7 @@ class CachedMulledDockerContainerResolver(CliContainerResolver):
         self.hash_func = hash_func
 
     def resolve(self, enabled_container_types, tool_info, **kwds):
+        log.error("CachedMulledDockerContainerResolver.resolve")
         if not self.cli_available or tool_info.requires_galaxy_python_environment or self.container_type not in enabled_container_types:
             return None
 
@@ -399,6 +400,7 @@ class CachedMulledSingularityContainerResolver(SingularityCliContainerResolver):
         self.hash_func = hash_func
 
     def resolve(self, enabled_container_types, tool_info, **kwds):
+        log.error("CachedMulledSingularityContainerResolver.resolve")
         if tool_info.requires_galaxy_python_environment or self.container_type not in enabled_container_types:
             return None
 
@@ -441,6 +443,7 @@ class MulledDockerContainerResolver(CliContainerResolver):
         return self.cli_available
 
     def resolve(self, enabled_container_types, tool_info, install=False, session=None, **kwds):
+        log.error("MulledDockerContainerResolver.resolve")
         resolution_cache = kwds.get("resolution_cache")
         if tool_info.requires_galaxy_python_environment or self.container_type not in enabled_container_types:
             return None
@@ -512,6 +515,7 @@ class MulledSingularityContainerResolver(SingularityCliContainerResolver, Mulled
         return True
 
     def pull(self, container):
+        log.error("MulledSingularityContainerResolver.pull")
         if self.cli_available:
             cmds = container.build_mulled_singularity_pull_command(cache_directory=self.cache_directory, namespace=self.namespace)
             shell(cmds=cmds)
@@ -544,6 +548,7 @@ class BuildMulledDockerContainerResolver(CliContainerResolver):
         self.auto_init = self._get_config_option("involucro_auto_init", True)
 
     def resolve(self, enabled_container_types, tool_info, install=False, **kwds):
+        log.error("BuildMulledDockerContainerResolver.resolve")
         if tool_info.requires_galaxy_python_environment or self.container_type not in enabled_container_types:
             return None
 
@@ -591,6 +596,7 @@ class BuildMulledSingularityContainerResolver(SingularityCliContainerResolver):
         self.auto_init = self._get_config_option("involucro_auto_init", True)
 
     def resolve(self, enabled_container_types, tool_info, install=False, **kwds):
+        log.error("BuildMulledSingularityContainerResolver.resolve")
         if tool_info.requires_galaxy_python_environment or self.container_type not in enabled_container_types:
             return None
 
