@@ -44,7 +44,7 @@ class ExplicitSingularityContainerResolver(ExplicitContainerResolver):
         hence the container_description hack here.
         """
         log.error("ExplicitSingularityContainerResolver.resolve")
-        
+        raise Exception()
         for container_description in tool_info.container_descriptions:
             if container_description.type == 'docker':
                 desc_dict = container_description.to_dict()

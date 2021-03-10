@@ -516,6 +516,7 @@ class MulledSingularityContainerResolver(SingularityCliContainerResolver, Mulled
 
     def pull(self, container):
         log.error("MulledSingularityContainerResolver.pull")
+        raise Exception()
         if self.cli_available:
             cmds = container.build_mulled_singularity_pull_command(cache_directory=self.cache_directory, namespace=self.namespace)
             shell(cmds=cmds)
