@@ -14,7 +14,8 @@ from galaxy.util import (
 from galaxy.util.commands import shell
 from ..container_classes import CONTAINER_CLASSES
 from ..container_resolvers import (
-    ContainerResolver,
+    CliContainerResolver,
+    SingularityCliContainerResolver
 )
 from ..docker_util import build_docker_images_command
 from ..mulled.mulled_build import (
@@ -336,37 +337,6 @@ def targets_to_mulled_name(targets, hash_func, namespace, resolution_cache=None,
     return name
 
 
-class CliContainerResolver(ContainerResolver):
-
-    container_type = 'docker'
-    cli = 'docker'
-
-    def __init__(self, *args, **kwargs):
-        self._cli_available = bool(which(self.cli))
-        super().__init__(*args, **kwargs)
-
-    @property
-    def cli_available(self):
-        return self._cli_available
-
-    @cli_available.setter
-    def cli_available(self, value):
-        if not value:
-            log.info('{} CLI not available, cannot list or pull images in Galaxy process. Does not impact kubernetes.'.format(self.cli))
-        self._cli_available = value
-
-
-class SingularityCliContainerResolver(CliContainerResolver):
-
-    container_type = 'singularity'
-    cli = 'singularity'
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.cache_directory = kwargs.get("cache_directory", os.path.join(kwargs['app_info'].container_image_cache_path, "singularity", "mulled"))
-        safe_makedirs(self.cache_directory)
-
-
 class CachedMulledDockerContainerResolver(CliContainerResolver):
 
     resolver_type = "cached_mulled"
@@ -479,6 +449,9 @@ class MulledDockerContainerResolver(CliContainerResolver):
                     destination_for_container_type = kwds.get('destination_for_container_type')
                     if destination_for_container_type:
                         destination_info = destination_for_container_type(self.container_type)
+                    log.error(f"\tcontainer_description.identifier {container_description.identifier}")
+                    log.error(f"\tself.app_info {self.app_info}")
+                    log.error(f"\tdestination_info {destination_info}")
                     container = CONTAINER_CLASSES[self.container_type](container_description.identifier,
                                                                        self.app_info,
                                                                        tool_info,

@@ -11,7 +11,7 @@ log = logging.getLogger(__name__)
 DEFAULT_SHELL = "/bin/bash"
 
 
-class ExplicitContainerResolver(ContainerResolver):
+class ExplicitContainerResolver(CliContainerResolver):
     """Find explicit containers referenced in the tool description (e.g. tool XML file) if present."""
 
     resolver_type = "explicit"
@@ -31,7 +31,8 @@ class ExplicitContainerResolver(ContainerResolver):
         return None
 
 
-class ExplicitSingularityContainerResolver(ExplicitContainerResolver):
+# TODO is it correct to change class hierarcy (i.e. not to derive from ExplicitContainerResolver)
+class ExplicitSingularityContainerResolver(SingularityCliContainerResolver):
 
     resolver_type = 'explicit_singularity'
     container_type = 'singularity'
@@ -50,6 +51,21 @@ class ExplicitSingularityContainerResolver(ExplicitContainerResolver):
                 desc_dict['type'] = self.container_type
                 desc_dict['identifier'] = "docker://%s" % container_description.identifier
                 container_description = container_description.from_dict(desc_dict)
+            if self.can_list_containers:
+                if install: # TODO cache check
+                    destination_info = {}
+                    destination_for_container_type = kwds.get('destination_for_container_type')
+                    if destination_for_container_type:
+                        destination_info = destination_for_container_type(self.container_type)
+                    container = CONTAINER_CLASSES[self.container_type](container_description.identifier,
+                                                                       self.app_info,
+                                                                       tool_info,
+                                                                       destination_info,
+                                                                       {},
+                                                                       container_description)
+                    pass
+                # TODO if not self.auto_install:
+
             if self._container_type_enabled(container_description, enabled_container_types):
                 return container_description
 
