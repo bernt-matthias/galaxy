@@ -5,7 +5,7 @@ from abc import (
     abstractproperty,
 )
 
-
+from galaxy.util import which
 from galaxy.util.bunch import Bunch
 from galaxy.util.dictifiable import Dictifiable
 
