@@ -53,7 +53,7 @@ class ExplicitSingularityContainerResolver(SingularityCliContainerResolver):
                 desc_dict['type'] = self.container_type
                 desc_dict['identifier'] = "docker://%s" % container_description.identifier
                 container_description = container_description.from_dict(desc_dict)
-            if self.can_list_containers:
+            if self.cli_available:
                 if install: # TODO cache check
                     destination_info = {}
                     destination_for_container_type = kwds.get('destination_for_container_type')
