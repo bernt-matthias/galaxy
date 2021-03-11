@@ -2,6 +2,7 @@
 import logging
 
 from ..container_resolvers import (
+    ContainerResolver,
     CliContainerResolver,
     SingularityCliContainerResolver,
 )
