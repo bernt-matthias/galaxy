@@ -1,6 +1,7 @@
 """This module describes the :class:`ExplicitContainerResolver` ContainerResolver plugin."""
 import logging
 
+from ..container_classes import CONTAINER_CLASSES
 from ..container_resolvers import (
     ContainerResolver,
     CliContainerResolver,
