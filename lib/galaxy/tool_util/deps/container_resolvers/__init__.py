@@ -4,6 +4,7 @@ from abc import (
     abstractmethod,
     abstractproperty,
 )
+import os
 
 from galaxy.util import which
 from galaxy.util.bunch import Bunch
