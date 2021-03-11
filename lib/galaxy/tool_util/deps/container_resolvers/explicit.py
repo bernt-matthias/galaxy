@@ -39,7 +39,7 @@ class ExplicitSingularityContainerResolver(SingularityCliContainerResolver):
     resolver_type = 'explicit_singularity'
     container_type = 'singularity'
 
-    def resolve(self, enabled_container_types, tool_info, **kwds):
+    def resolve(self, enabled_container_types, tool_info, install=False, **kwds):
         """Find a container explicitly mentioned in tool description.
 
         This ignores the tool requirements and assumes the tool author crafted
