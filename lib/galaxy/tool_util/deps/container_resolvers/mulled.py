@@ -13,7 +13,7 @@ from galaxy.util import (
 )
 from galaxy.util.commands import shell
 from ..container_classes import CONTAINER_CLASSES
-from ..container_resolvers import (
+from .. import (
     CliContainerResolver,
     SingularityCliContainerResolver
 )

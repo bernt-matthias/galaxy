@@ -59,3 +59,34 @@ class ContainerResolver(Dictifiable, metaclass=ABCMeta):
 
     def __str__(self):
         return "%s[]" % self.__class__.__name__
+
+
+class CliContainerResolver(ContainerResolver):
+
+    container_type = 'docker'
+    cli = 'docker'
+
+    def __init__(self, *args, **kwargs):
+        self._cli_available = bool(which(self.cli))
+        super().__init__(*args, **kwargs)
+
+    @property
+    def cli_available(self):
+        return self._cli_available
+
+    @cli_available.setter
+    def cli_available(self, value):
+        if not value:
+            log.info('{} CLI not available, cannot list or pull images in Galaxy process. Does not impact kubernetes.'.format(self.cli))
+        self._cli_available = value
+
+
+class SingularityCliContainerResolver(CliContainerResolver):
+
+    container_type = 'singularity'
+    cli = 'singularity'
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.cache_directory = kwargs.get("cache_directory", os.path.join(kwargs['app_info'].container_image_cache_path, "singularity", "mulled"))
+        safe_makedirs(self.cache_directory)
