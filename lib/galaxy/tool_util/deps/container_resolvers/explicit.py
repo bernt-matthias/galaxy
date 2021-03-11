@@ -1,6 +1,7 @@
 """This module describes the :class:`ExplicitContainerResolver` ContainerResolver plugin."""
 import logging
 
+from galaxy.util import which
 from ..container_resolvers import (
     ContainerResolver,
     CliContainerResolver,
