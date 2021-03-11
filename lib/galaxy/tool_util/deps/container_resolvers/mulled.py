@@ -9,7 +9,6 @@ from galaxy.util import (
     safe_makedirs,
     string_as_bool,
     unicodify,
-    which,
 )
 from galaxy.util.commands import shell
 from ..container_classes import CONTAINER_CLASSES

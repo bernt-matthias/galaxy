@@ -6,7 +6,10 @@ from abc import (
 )
 import os
 
-from galaxy.util import which
+from galaxy.util import (
+    safe_makedirs,
+    which,
+)
 from galaxy.util.bunch import Bunch
 from galaxy.util.dictifiable import Dictifiable
 
