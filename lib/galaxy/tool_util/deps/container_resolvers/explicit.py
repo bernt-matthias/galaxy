@@ -72,7 +72,7 @@ class ExplicitSingularityContainerResolver(SingularityCliContainerResolver):
                                                                        destination_info,
                                                                        {},
                                                                        container_description)
-                    container.build_pull_command()
+                    container.build_pull_command(self.cache_directory)
                     shell(command)
                 # TODO if not self.auto_install:?
 
