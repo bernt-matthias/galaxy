@@ -63,6 +63,9 @@ class ExplicitSingularityContainerResolver(SingularityCliContainerResolver):
                     destination_for_container_type = kwds.get('destination_for_container_type')
                     if destination_for_container_type:
                         destination_info = destination_for_container_type(self.container_type)
+                    log.error(f"\tcontainer_description.identifier {container_description.identifier}")
+                    log.error(f"\tself.app_info {self.app_info}")
+                    log.error(f"\tdestination_info {destination_info}")
                     container = CONTAINER_CLASSES[self.container_type](container_description.identifier,
                                                                        self.app_info,
                                                                        tool_info,
