@@ -382,6 +382,14 @@ class SingularityContainer(Container, HasDockerLikeVolumes):
     def connection_configuration(self):
         return self.get_singularity_target_kwds()
 
+    def build_pull_command(self, cache_directory):
+        return singularity_util.docker_image_identifier(
+            docker_image_identifier=self.container_id,
+            cache_directory=cache_directory,
+            namespace=None,
+            *self.get_singularity_target_kwds()
+        )
+
     def build_mulled_singularity_pull_command(self, cache_directory, namespace="biocontainers"):
         return singularity_util.pull_mulled_singularity_command(
             docker_image_identifier=self.container_id,
