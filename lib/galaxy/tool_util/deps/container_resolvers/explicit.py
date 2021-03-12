@@ -69,7 +69,7 @@ class ExplicitSingularityContainerResolver(SingularityCliContainerResolver):
                                                                        destination_info,
                                                                        {},
                                                                        container_description)
-                    pass
+                    self.pull(container)
                 # TODO if not self.auto_install:
 
             if self._container_type_enabled(container_description, enabled_container_types):
