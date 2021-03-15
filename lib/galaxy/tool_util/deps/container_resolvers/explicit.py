@@ -14,6 +14,12 @@ log = logging.getLogger(__name__)
 
 DEFAULT_SHELL = "/bin/bash"
 
+class CachedExplicitSingularityContainerResolver(SingularityCliContainerResolver):
+    resolver_type = 'cached_explicit_singularity'
+    container_type = 'singularity'
+
+    def resolve(self, enabled_container_types, tool_info, **kwds):
+        log.error("CachedExplicitingularityContainerResolver.resolve")
 
 class ExplicitContainerResolver(CliContainerResolver):
     """Find explicit containers referenced in the tool description (e.g. tool XML file) if present."""
@@ -190,6 +196,7 @@ class MappingContainerResolver(BaseAdminConfiguredContainerResolver):
 
 
 __all__ = (
+    "CachedExplicitSingularityContainerResolver",
     "ExplicitContainerResolver",
     "ExplicitSingularityContainerResolver",
     "FallbackContainerResolver",
