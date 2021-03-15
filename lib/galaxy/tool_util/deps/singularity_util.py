@@ -36,6 +36,10 @@ def pull_singularity_command(docker_image_identifier,
                                     singularity_cmd=DEFAULT_SINGULARITY_COMMAND,
                                     sudo=DEFAULT_SUDO,
                                     sudo_cmd=DEFAULT_SUDO_COMMAND):
+    """
+    pull a docker container (docker://xxx/yyy) with singularity to a cache_directory
+    the image will be stored as CACHE_DIR/xxx/yyy
+    """
     command_parts = []
     command_parts += _singularity_prefix(
         singularity_cmd=singularity_cmd,
