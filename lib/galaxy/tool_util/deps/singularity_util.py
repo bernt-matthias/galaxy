@@ -27,7 +27,7 @@ def pull_mulled_singularity_command(docker_image_identifier,
         prefix = "docker://quay.io/%s/" % namespace
         if docker_image_identifier.startswith(prefix):
             save_path = docker_image_identifier[len(prefix):]
-    command_parts.extend(["build", os.path.join(cache_directory, save_path), docker_image_identifier])
+    command_parts.extend(["build", os.path.join(cache_directory, "mulled", save_path), docker_image_identifier])
     return command_parts
 
 def pull_singularity_command(docker_image_identifier,
