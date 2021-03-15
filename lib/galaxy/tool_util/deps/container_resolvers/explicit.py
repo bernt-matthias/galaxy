@@ -20,6 +20,18 @@ class CachedExplicitSingularityContainerResolver(SingularityCliContainerResolver
 
     def resolve(self, enabled_container_types, tool_info, **kwds):
         log.error("CachedExplicitingularityContainerResolver.resolve")
+        for container_description in tool_info.container_descriptions:
+            if self._container_type_enabled(container_description, enabled_container_types):
+                image_dir, image_name = get_singularity_image_path(self.cache_directory, container_description.identifier)
+                image = os.path.join(image_dir, image_name)
+                log.error(f"\timage {image}")
+                if os.path.exists(image):
+                    return ContainerDescription(
+                        image,
+                        type="singularity",
+                        shell=shell,
+                    )
+
 
 class ExplicitContainerResolver(CliContainerResolver):
     """Find explicit containers referenced in the tool description (e.g. tool XML file) if present."""

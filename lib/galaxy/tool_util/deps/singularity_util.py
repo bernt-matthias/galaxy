@@ -10,6 +10,21 @@ DEFAULT_SUDO_COMMAND = "sudo"
 DEFAULT_RUN_EXTRA_ARGUMENTS = None
 
 
+def get_singularity_image_path(cache_directory, docker_image_identifier):
+    """
+    given a docker image identifier URI, e.g. docker://xxx/yyy
+    compute the dir and the image name, e.g. CACHE_DIR/xxx and yyy.sif
+    """
+    s = docker_image_identifier.find("://")
+    if s > 0:
+        dii_parts = docker_image_identifier[s+3:]
+    else:
+        dii_parts = docker_image_identifier
+    dii_parts = dii_parts.split("/")
+    save_dir = os.path.join(cache_directory, *dii_parts[:-1])
+    save_name = dii_parts[-1] + ".sif"
+    return save_dir, save_name
+
 def pull_mulled_singularity_command(docker_image_identifier,
                                     cache_directory,
                                     namespace=None,
@@ -38,7 +53,7 @@ def pull_singularity_command(docker_image_identifier,
                                     sudo_cmd=DEFAULT_SUDO_COMMAND):
     """
     pull a docker container (docker://xxx/yyy) with singularity to a cache_directory
-    the image will be stored as CACHE_DIR/xxx/yyy
+    the image will be stored as CACHE_DIR/xxx/yyy.sif
     """
     command_parts = []
     command_parts += _singularity_prefix(
@@ -46,18 +61,9 @@ def pull_singularity_command(docker_image_identifier,
         sudo=sudo,
         sudo_cmd=sudo_cmd,
     )
-    s = docker_image_identifier.find("://")
-    if s > 0:
-        dii_parts = docker_image_identifier[s+3:]
-    else:
-        dii_parts = docker_image_identifier
-    dii_parts = dii_parts.split("/")
-    save_dir = os.path.join(cache_directory, *dii_parts[:-1])
-    save_name = dii_parts[-1]
-
-    safe_makedirs(save_dir)
-
-    command_parts.extend(["build", os.path.join(save_dir, save_name), docker_image_identifier])
+    image_dir, image_name = get_singularity_image_path(cache_directory, docker_image_identifier)
+    safe_makedirs(image_dir)
+    command_parts.extend(["build", os.path.join(image_dir, image_name), docker_image_identifier])
     return command_parts
 
 def build_singularity_run_command(
