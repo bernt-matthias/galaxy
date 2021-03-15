@@ -28,11 +28,12 @@ class CachedExplicitSingularityContainerResolver(SingularityCliContainerResolver
                 image = os.path.join(image_dir, image_name)
                 log.error(f"\timage {image}")
                 if os.path.exists(image):
-                    return ContainerDescription(
-                        image,
-                        type="singularity",
-                        shell=shell,
-                    )
+                    return None
+                    # return ContainerDescription(
+                    #     image,
+                    #     type="singularity",
+                    #     shell=shell,
+                    # )
 
 
 class ExplicitContainerResolver(CliContainerResolver):
