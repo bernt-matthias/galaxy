@@ -9,6 +9,7 @@ from ..container_resolvers import (
     SingularityCliContainerResolver,
 )
 from ..requirements import ContainerDescription
+from ..singularity_util import get_singularity_image_path
 
 log = logging.getLogger(__name__)
 
