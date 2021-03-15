@@ -1,6 +1,8 @@
 import os
 import shlex
 
+from galaxy.util.path import safe_makedirs
+
 DEFAULT_WORKING_DIRECTORY = None
 DEFAULT_SINGULARITY_COMMAND = "singularity"
 DEFAULT_SUDO = False
@@ -28,6 +30,31 @@ def pull_mulled_singularity_command(docker_image_identifier,
     command_parts.extend(["build", os.path.join(cache_directory, save_path), docker_image_identifier])
     return command_parts
 
+def pull_singularity_command(docker_image_identifier,
+                                    cache_directory,
+                                    namespace=None,
+                                    singularity_cmd=DEFAULT_SINGULARITY_COMMAND,
+                                    sudo=DEFAULT_SUDO,
+                                    sudo_cmd=DEFAULT_SUDO_COMMAND):
+    command_parts = []
+    command_parts += _singularity_prefix(
+        singularity_cmd=singularity_cmd,
+        sudo=sudo,
+        sudo_cmd=sudo_cmd,
+    )
+    s = docker_image_identifier.find("://")
+    if s > 0:
+        dii_parts = docker_image_identifier[s+3:]
+    else:
+        dii_parts = docker_image_identifier
+    dii_parts = dii_parts.split("/")
+    save_dir = os.path.join(cache_directory, *dii_parts[:-1])
+    save_name = dii_parts[-1]
+
+    safe_makedirs(save_dir)
+
+    command_parts.extend(["build", os.path.join(save_dir, save_name), docker_image_identifier])
+    return command_parts
 
 def build_singularity_run_command(
     container_command,
