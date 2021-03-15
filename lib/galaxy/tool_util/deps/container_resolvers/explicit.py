@@ -1,6 +1,7 @@
 """This module describes the :class:`ExplicitContainerResolver` ContainerResolver plugin."""
 import logging
 
+from galaxy.util.commands import shell
 from ..container_classes import CONTAINER_CLASSES
 from ..container_resolvers import (
     ContainerResolver,
@@ -73,6 +74,7 @@ class ExplicitSingularityContainerResolver(SingularityCliContainerResolver):
                                                                        {},
                                                                        container_description)
                     container.build_pull_command(self.cache_directory)
+                    log.error(f"\t"command {command})
                     shell(command)
                 # TODO if not self.auto_install:?
 
