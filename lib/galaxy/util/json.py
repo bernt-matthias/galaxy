@@ -66,7 +66,6 @@ def safe_dumps(*args, **kwargs):
     json.dumps to blow up if it encounters Infinity/NaN, and we 'fix' it before
     re-encoding.
     """
-    log.error(f"safe_dumps {args}")
     try:
         dumped = json.dumps(*args, allow_nan=False, **kwargs)
     except ValueError:
