@@ -25,6 +25,10 @@ class CachedExplicitSingularityContainerResolver(SingularityCliContainerResolver
         log.error("CachedExplicitingularityContainerResolver.resolve")
         for container_description in tool_info.container_descriptions:
             log.error(f"\tcontainer_description {container_description}")
+            if container_description.type == 'docker':
+                desc_dict = container_description.to_dict()
+                desc_dict['type'] = self.container_type
+                container_description = container_description.from_dict(desc_dict)
             log.error(f"\t_container_type_enabled {self._container_type_enabled(container_description, enabled_container_types)}")
             if self._container_type_enabled(container_description, enabled_container_types):
                 image_dir, image_name = get_singularity_image_path(self.cache_directory, container_description.identifier)
