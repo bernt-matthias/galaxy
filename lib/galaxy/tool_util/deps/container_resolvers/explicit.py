@@ -24,6 +24,8 @@ class CachedExplicitSingularityContainerResolver(SingularityCliContainerResolver
     def resolve(self, enabled_container_types, tool_info, **kwds):
         log.error("CachedExplicitingularityContainerResolver.resolve")
         for container_description in tool_info.container_descriptions:
+            log.error(f"\tcontainer_description {container_description}")
+            log.error(f"\t_container_type_enabled {self._container_type_enabled(container_description, enabled_container_types)}")
             if self._container_type_enabled(container_description, enabled_container_types):
                 image_dir, image_name = get_singularity_image_path(self.cache_directory, container_description.identifier)
                 image = os.path.join(image_dir, image_name)
