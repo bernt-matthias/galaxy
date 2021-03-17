@@ -32,7 +32,7 @@ class CachedExplicitSingularityContainerResolver(SingularityCliContainerResolver
                     container = ContainerDescription(
                         image,
                         type="singularity",
-                        shell=shell,
+                        shell=self.shell,
                     )
                     log.error(f"\tcontainer {container}")
                     return container
