@@ -2,7 +2,7 @@
 import logging
 import os.path
 
-from galaxy.util.commands import shell
+from galaxy.util.commands import shell as sh
 from ..container_classes import CONTAINER_CLASSES
 from ..container_resolvers import (
     ContainerResolver,
@@ -101,7 +101,7 @@ class ExplicitSingularityContainerResolver(SingularityCliContainerResolver):
                                                                        container_description)
                     command = container.build_pull_command(self.cache_directory)
                     log.error(f"\tcommand {command}")
-                    shell(command)
+                    sh(command)
                 # TODO if not self.auto_install:?
 
             if self._container_type_enabled(container_description, enabled_container_types):
