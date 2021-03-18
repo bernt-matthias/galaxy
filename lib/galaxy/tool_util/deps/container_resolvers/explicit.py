@@ -25,16 +25,16 @@ class CachedExplicitSingularityContainerResolver(SingularityCliContainerResolver
         log.error("CachedExplicitingularityContainerResolver.resolve")
         for container_description in tool_info.container_descriptions:
             log.error(f"\tcontainer_description {container_description}")
+            # allow to run docker requirements by overwriting type
             if container_description.type == 'docker':
                 desc_dict = container_description.to_dict()
                 desc_dict['type'] = self.container_type
                 container_description = container_description.from_dict(desc_dict)
             log.error(f"\t_container_type_enabled {self._container_type_enabled(container_description, enabled_container_types)}")
             if self._container_type_enabled(container_description, enabled_container_types):
-                image_dir, image_name = get_singularity_image_path(self.cache_directory, container_description.identifier)
-                image = os.path.join(image_dir, image_name)
-                log.error(f"\timage {image}")
-                if os.path.exists(image):
+                image_path = get_singularity_image_path(self.cache_directory, container_description.identifier)
+                log.error(f"\timage {image_path}")
+                if os.path.exists(image_path):
                     container = ContainerDescription(
                         image,
                         type="singularity",
@@ -91,6 +91,10 @@ class ExplicitSingularityContainerResolver(SingularityCliContainerResolver):
             log.error(f"\tself.cli_available {self.cli_available}")
             log.error(f"\tinstall {install}")
             if self.cli_available:
+                if not self.cache_directory:
+                    log.error("can not install container: no cache_directory specified")
+                    continue
+                
                 if install: # TODO cache check
                     destination_info = {}
                     destination_for_container_type = kwds.get('destination_for_container_type')

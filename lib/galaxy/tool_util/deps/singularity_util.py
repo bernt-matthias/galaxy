@@ -21,9 +21,9 @@ def get_singularity_image_path(cache_directory, docker_image_identifier):
     else:
         dii_parts = docker_image_identifier
     dii_parts = dii_parts.split("/")
-    save_dir = os.path.join(cache_directory, *dii_parts[:-1])
+    save_dir = os.path.abspath(os.path.join(cache_directory, *dii_parts[:-1]))
     save_name = dii_parts[-1] + ".sif"
-    return save_dir, save_name
+    return os.path.join(image_dir, image_name)
 
 def pull_mulled_singularity_command(docker_image_identifier,
                                     cache_directory,
@@ -61,9 +61,9 @@ def pull_singularity_command(docker_image_identifier,
         sudo=sudo,
         sudo_cmd=sudo_cmd,
     )
-    image_dir, image_name = get_singularity_image_path(cache_directory, docker_image_identifier)
-    safe_makedirs(image_dir)
-    command_parts.extend(["build", os.path.join(image_dir, image_name), docker_image_identifier])
+    image_path = get_singularity_image_path(cache_directory, docker_image_identifier)
+    safe_makedirs(os.path.dirname(image_dir))
+    command_parts.extend(["build", image_path, docker_image_identifier])
     return command_parts
 
 def build_singularity_run_command(
