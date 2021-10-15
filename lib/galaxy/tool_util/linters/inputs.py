@@ -3,6 +3,7 @@ import re
 
 from galaxy.util import string_as_bool
 from ._util import (
+    get_code,
     is_datasource,
     is_valid_cheetah_placeholder,
 )
@@ -120,6 +121,7 @@ def lint_inputs(tool_xml, lint_ctx):
     datasource = is_datasource(tool_xml)
     input_names = set()
     inputs = tool_xml.findall("./inputs//param")
+    code, filter_code, label_code = get_code(tool_xml)
     # determine node to report for general problems with outputs
     tool_node = tool_xml.find("./inputs")
     if tool_node is None:
@@ -171,6 +173,32 @@ def lint_inputs(tool_xml, lint_ctx):
         param_type = param_attrib["type"]
 
         # TODO lint for valid param type - attribute combinations
+        # TODO lint required attributes for valid each param type
+        # check if the parameter is used somewhere
+        conf_inputs = tool_xml.find("./configfiles/inputs")
+        if re.search(r"[^\w_]" + param_name + r"([^\w_]|$)", code) is not None:
+            pass
+        elif param_name in filter_code:
+            pass
+        elif re.search(r"[^\w_]" + param_name + r"[^\w_]", label_code):
+            lint_ctx.info(f"Param input [{param_name}] only found in an attribute.")
+        elif len(tool_xml.findall(f"./outputs//change_format/when[@input='{param_name}']")) > 0:
+            pass
+        elif conf_inputs is not None:  # in this it's really hard to know
+            if param_type in ["data", "collection"] and not conf_inputs.attrib.get("data_style"):
+                lint_ctx.error(f"Param input [{param_name}] not found in command or configfiles. Does the present inputs config miss the 'data_style' attribute?")
+            else:
+                if conf_inputs.attrib.get('name', None):
+                    lint_ctx.info(f"Param input [{param_name}] may be unused. Double check that is used in the inputs configfile [{conf_inputs.attrib['name']}] and that this file is used properly.")
+                elif conf_inputs.attrib.get('filename', None):
+                    lint_ctx.info(f"Param input [{param_name}] may be unused. Double check that is used in the inputs configfile [{conf_inputs.attrib['filename']}] and that this file is used properly.")
+        elif param.getparent().tag == "conditional":
+            lint_ctx.info(f"Param input [{param_name}] only used in the select of a conditional, which should be OK.")
+        else:
+            lint_ctx.error(f"Param input [{param_name}] not found in command or configfiles.")
+
+        if not is_valid_cheetah_placeholder(param_name):
+            lint_ctx.warn(f"Param input [{param_name}] is not a valid Cheetah placeholder.")
 
         # lint for valid param type - child node combinations
         for ptcc in PARAM_TYPE_CHILD_COMBINATIONS:
