@@ -192,6 +192,13 @@ INPUTS_DATA_PARAM = """
 </tool>
 """
 
+NO_SECTIONS_XML = """
+<tool>
+    <description>The BWA Mapper</description>
+    <version_command interpreter="python">bwa.py --version</version_command>
+</tool>
+"""
+
 INPUTS_CONDITIONAL = """
 <tool>
     <inputs>
@@ -249,6 +256,9 @@ INPUTS_CONDITIONAL = """
 
 INPUTS_SELECT_INCOMPATIBLE_DISPLAY = """
 <tool>
+    <command>
+        $radio_select $checkboxes_select $checkboxes_select_correct
+    </command>
     <inputs>
         <param name="radio_select" type="select" display="radio" optional="true" multiple="true">
             <option value="1">1</option>
@@ -269,6 +279,9 @@ INPUTS_SELECT_INCOMPATIBLE_DISPLAY = """
 
 INPUTS_SELECT_DUPLICATED_OPTIONS = """
 <tool>
+    <command>
+        $select
+    </command>
     <inputs>
         <param name="select" type="select" optional="true" multiple="true">
             <option value="v">x</option>
@@ -306,6 +319,9 @@ INPUTS_SELECT_DEPRECATIONS = """
 
 INPUTS_SELECT_OPTION_DEFINITIONS = """
 <tool>
+    <command>
+        $select_noopt $select_noopts $select_fd_op $select_fd_fdt $select_noval_notext
+    </command>
     <inputs>
         <param name="select_noopt" type="select"/>
         <param name="select_noopts" type="select">
@@ -363,6 +379,9 @@ INPUTS_VALIDATOR_INCOMPATIBILITIES = """
 
 INPUTS_VALIDATOR_CORRECT = """
 <tool>
+    <command>
+        $data_param $collection_param $text_param $select_param $int_param
+    </command>
     <inputs>
         <param name="data_param" type="data" format="data">
             <validator type="metadata" check="md1,md2" skip="md3,md4" message="custom validation message" negate="true"/>
@@ -452,9 +471,7 @@ INPUTS_DUPLICATE_NAMES = """
 """
 
 PARAMETER_IN_COMMAND = """
-<tool name="BWA Mapper" id="bwa" version="1.0.1" is_multi_byte="true" display_interface="true" require_login="true" hidden="true">
-    <description>The BWA Mapper</description>
-    <version_command interpreter="python">bwa.py --version</version_command>
+<tool>
     <command>
         $simple1
         ${ simple2 }
@@ -514,9 +531,7 @@ PARAMETER_IN_COMMAND = """
 """
 
 PARAMETER_IN_COMMAND_WITH_INPUTS = """
-<tool name="BWA Mapper" id="bwa" version="1.0.1" is_multi_byte="true" display_interface="true" require_login="true" hidden="true">
-    <description>The BWA Mapper</description>
-    <version_command interpreter="python">bwa.py --version</version_command>
+<tool>
     <command>
         do something with $inputs ## but note, the linter does not check if inputs is really used
     </command>
