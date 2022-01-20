@@ -197,9 +197,6 @@ def lint_inputs(tool_xml, lint_ctx):
         else:
             lint_ctx.error(f"Param input [{param_name}] not found in command or configfiles.")
 
-        if not is_valid_cheetah_placeholder(param_name):
-            lint_ctx.warn(f"Param input [{param_name}] is not a valid Cheetah placeholder.")
-
         # lint for valid param type - child node combinations
         for ptcc in PARAM_TYPE_CHILD_COMBINATIONS:
             if param.find(ptcc[0]) is not None and param_type not in ptcc[1]:
