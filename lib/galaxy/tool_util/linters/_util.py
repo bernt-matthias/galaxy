@@ -4,12 +4,19 @@ import re
 def get_code(tool_xml):
     """get code used in the Galaxy tool"""
 
-    # get code from command and configfiles
+    # get code from
+    # - command,
+    # - configfiles, and
+    # - template macros
+    # note: not necessary (& possible) for macro tokens which are expanded
+    # during loading the xml (and removed from the macros tag)
     code = ""
-    for cn in tool_xml.findall(".//command"):
-        code += cn.text
-    for cn in tool_xml.findall(".//configfile"):
-        code += cn.text
+    for tag in [".//command", ".//configfile", './/macros/macro[@type="template"]']:
+        print(f"tag {tag}")
+        for cn in tool_xml.findall(tag):
+            print(f"node {cn}")
+            code += cn.text
+
     # remove comments,
     # TODO this is not optimal, but strings containing "##"" complicate this quite a bit
     # TODO also this is not complete, e.g. multiline comments are missing

@@ -472,7 +472,13 @@ INPUTS_DUPLICATE_NAMES = """
 
 INPUTS_PARAMETER_IN_COMMAND = """
 <tool>
+    <macros>
+        <template name="template_token">
+            $variable_in_template_token
+        </template>
+    </macros>
     <command>
+        #include source=$template_token#
         $simple1
         ${ simple2 }
         $sec.paired_collection1.forward
@@ -513,6 +519,7 @@ INPUTS_PARAMETER_IN_COMMAND = """
             </when>
         </conditional>
         <param name="hey_a_missing_parameter" type="boolean"/>
+        <param name="variable_in_template_token" type="text"/>
     </inputs>
     <outputs>
         <data>
