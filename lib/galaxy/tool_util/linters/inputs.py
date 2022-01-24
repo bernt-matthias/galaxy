@@ -7,7 +7,7 @@ from ._util import (
     is_datasource,
     is_valid_cheetah_placeholder,
 )
-from ..parser.util import _parse_name
+from ..parser.util import _parse_name, _prepare_argument
 
 FILTER_TYPES = [
     "data_meta",
@@ -116,12 +116,82 @@ PARAM_TYPE_CHILD_COMBINATIONS = [
 ]
 
 
+def _param_in_compiled_cheetah(param, param_name, code):
+    # # accession $PATH.param_name.ATTRIBUTES in cheetah gives
+    # # VFFSL(SL,"PATH.param_name.ATTRIBUTES",True)
+    # # for PATH and ATTRIBUTES we assume simply ([\w.]+)?
+    # # since if wrong it will be discovered in a test
+    # if re.search(r'VFFSL\(SL,[\"\']([\w.]+\.)?' + param_name + r'(\.[\w.]+)?[\"\'],True\)', code):
+    #     return True
+
+    # # print("checking path")
+    # # accessing $PATH.param_name['ATTRIBUTE'] (ATTRIBUTE eg reverse)
+    # # or $PATH.param_name['ATTRIBUTE'].FURTHER_ATTRIBUTE gives
+    # # VFN(VFN(VFFSL(SL,"PATH",True),"param_name",True)['ATTRIBUTE'],"FURTHER_ATTRIBUTE",True)
+    # # we simply search VFN(VFFSL(SL,"PATH",True),"param_name",True)
+    # # ie ignore the ATTRIBUTES part and for PATH we assume again ([\w.]+)?
+    # if re.search(r'VFN\(VFFSL\(SL,[\"\'][\w.]+[\"\'],True\),[\"\']' + param_name + r'[\"\'],True\)', code):
+    #     return True
+
+    # # all these are covered by the rawExpr regular expression below
+    # # - $getVar("param_name")
+    # #   gets
+    # #   _v = VFFSL(SL,"getVar",False)("param_name")
+    # #   if _v is not None: write(_filter(_v, rawExpr='$getVar("param_name")'))
+    # # - $getVar("getvar_default", "default")
+    # #   gets
+    # #   _v = VFFSL(SL,"getVar",False)("getvar_default", "default")
+    # #   if _v is not None: write(_filter(_v, rawExpr='$getVar("getvar_default", "default")'))
+    # if re.search(r'VFFSL\(SL,[\"\']getVar[\"\'],False\)\([\"\']([\w.]+\.)?' + param_name + r'(\.[\w.]+)?[\"\'](, [^()]+)?\)', code):
+    #     return True
+
+    # # - $varExists("varexists")
+    # #   gets
+    # #   _v = VFFSL(SL,"varExists",False)("varexists")
+    # #   if _v is not None: write(_filter(_v, rawExpr='$varExists("varexists")'))
+    # # - $hasVar("hasvar")
+    # #   gets
+    # #   _v = VFFSL(SL,"hasVar",False)("hasvar")
+    # #   if _v is not None: write(_filter(_v, rawExpr='$hasVar("hasvar")'))
+    # if re.search(r'VFFSL\(SL,[\"\'](varExists|hasvar)[\"\'],False\)\([\"\']([\w.]+\.)?' + param_name + r'(\.[\w.]+)?[\'\"]\)', code):
+    #     return True
+
+    # # Also the following is possible (TODO but we could forbid it)
+    # # $PATH["param_name"].ATTRIBUTES
+    # # VFFSL(SL,"PATH",True)["param_name"].ATTRIBUTES
+    # if re.search(r'VFFSL\(SL,[\"\'][\w.]+[\"\'],True\)\[[\"\']' + param_name + r'[\"\']\]', code):
+    #     return True
+    # gets
+    # set $rg_id = str($rg_param('read_group_id_conditional').ID)
+    # rg_id = str(VFN(VFFSL(SL,"rg_param",False)('read_group_id_conditional'),"ID",True))
+    if re.search(r'(VFN|VFFSL)\(.*[\"\']([\w.]+\.)?' + param_name + r'(\.[\w.]+)?[\"\']', code):
+        return True
+
+    # #for i, r in enumerate($repeat_name)
+    #     #set x = $str(r[ 'param_name' ])
+    # #end for
+    # the loop content gets
+    # x = VFFSL(SL,"str",False)(r[ 'var_in_repeat' ])
+    if re.search(r'(VFFSL|VFN)\(.*\[\s*[\"\']' + param_name + r'[\"\']\s*\]', code):
+        # print(f"    G")
+        return True
+
+    # "${ ",".join( [ str( r.var_in_repeat3 ) for r in $repeat_name ] ) }"
+    # gets
+    # _v = ",".join( [ str( r.var_in_repeat3 ) for r in VFFSL(SL,"repeat_name",True) ] )
+    # if _v is not None: write(_filter(_v, rawExpr='${ ",".join( [ str( r.var_in_repeat3 ) for r in $repeat_name ] ) }'))
+    if re.search(r"rawExpr=([\"\'])(.*[^\w])?" + param_name + r"([^\w].*)?(\1)", code):
+        return True
+
+    # print("FALSE")
+    return False
+
+
 def lint_inputs(tool_xml, lint_ctx):
     """Lint parameters in a tool's inputs block."""
     datasource = is_datasource(tool_xml)
     input_names = set()
     inputs = tool_xml.findall("./inputs//param")
-    code, filter_code, label_code = get_code(tool_xml)
     # determine node to report for general problems with outputs
     tool_node = tool_xml.find("./inputs")
     if tool_node is None:
@@ -135,7 +205,7 @@ def lint_inputs(tool_xml, lint_ctx):
             continue
         param_name = _parse_name(param_attrib.get("name"), param_attrib.get("argument"))
         if "name" in param_attrib and "argument" in param_attrib:
-            if param_attrib.get("name") == _parse_name(None, param_attrib.get("argument")):
+            if param_attrib.get("name") == _prepare_argument(param_attrib.get("argument")):
                 lint_ctx.warn(
                     f"Param input [{param_name}] 'name' attribute is redundant if argument implies the same name.",
                     node=param,
@@ -174,28 +244,6 @@ def lint_inputs(tool_xml, lint_ctx):
 
         # TODO lint for valid param type - attribute combinations
         # TODO lint required attributes for valid each param type
-        # check if the parameter is used somewhere
-        conf_inputs = tool_xml.find("./configfiles/inputs")
-        if re.search(r"[^\w_]" + param_name + r"([^\w_]|$)", code) is not None:
-            pass
-        elif param_name in filter_code:
-            pass
-        elif re.search(r"[^\w_]" + param_name + r"[^\w_]", label_code):
-            lint_ctx.info(f"Param input [{param_name}] only found in an attribute.")
-        elif len(tool_xml.findall(f"./outputs//change_format/when[@input='{param_name}']")) > 0:
-            pass
-        elif conf_inputs is not None:  # in this it's really hard to know
-            if param_type in ["data", "collection"] and not conf_inputs.attrib.get("data_style"):
-                lint_ctx.error(f"Param input [{param_name}] not found in command or configfiles. Does the present inputs config miss the 'data_style' attribute?")
-            else:
-                if conf_inputs.attrib.get('name', None):
-                    lint_ctx.info(f"Param input [{param_name}] may be unused. Double check that is used in the inputs configfile [{conf_inputs.attrib['name']}] and that this file is used properly.")
-                elif conf_inputs.attrib.get('filename', None):
-                    lint_ctx.info(f"Param input [{param_name}] may be unused. Double check that is used in the inputs configfile [{conf_inputs.attrib['filename']}] and that this file is used properly.")
-        elif param.getparent().tag == "conditional":
-            lint_ctx.info(f"Param input [{param_name}] only used in the select of a conditional, which should be OK.")
-        else:
-            lint_ctx.error(f"Param input [{param_name}] not found in command or configfiles.")
 
         # lint for valid param type - child node combinations
         for ptcc in PARAM_TYPE_CHILD_COMBINATIONS:
@@ -507,6 +555,77 @@ def lint_inputs(tool_xml, lint_ctx):
                     f'Tool defines an output with a name equal to the name of an input: \'{output.get("name")}\'',
                     node=output,
                 )
+
+
+def lint_inputs_used(tool_xml, lint_ctx):
+    """
+    check if the parameter is used somewhere, the following cases are considered:
+    - in the command or a configfile
+    - in an output filter
+    - if it is the select of conditional
+    - if there is an inputs configfile that is used
+      - for data parameters data_style needs to be set for the config file
+      - for other parameters the name of the config file must be used in the code
+
+    a warning is shown if the parameter is used only in
+    - template macro,
+    - output action, or
+    - label of an output
+
+    otherwise
+    - if the parameter only appears in change_format
+    - or if none of the previous cases apply
+    """
+    code, template_code, filter_code, label_code, action_code = get_code(tool_xml)
+    inputs = tool_xml.findall("./inputs//param")
+    for param in inputs:
+        try:
+            param_name = _parse_name(param.attrib.get("name"), param.attrib.get("argument"))
+        except ValueError:
+            continue
+        if _param_in_compiled_cheetah(param, param_name, code):
+            continue
+        if param_name in filter_code:
+            continue
+        if tool_xml.find("./inputs//param/options[@from_dataset]") is not None or tool_xml.find("./inputs//param/options/filter[@ref]") is not None:
+            continue
+        if param.getparent().tag == "conditional":
+            continue
+
+        conf_inputs = tool_xml.find("./configfiles/inputs")
+        if conf_inputs is not None:  # in this it's really hard to know
+            param_type = param.attrib.get("type")
+            if param_type in ["data", "collection"]:
+                if not conf_inputs.attrib.get("data_style"):
+                    lint_ctx.error(f"Param input [{param_name}] not found in command or configfiles. Does the present inputs config miss the 'data_style' attribute?", line=param.sourceline, xpath=tool_xml.getpath(param))
+            inputs_conf_name = conf_inputs.attrib.get('name', conf_inputs.attrib.get('filename', None))
+            if inputs_conf_name:
+                if not re.search(r"(^|[^\w])" + inputs_conf_name + r"([^\w]|$)", code):
+                    lint_ctx.error(f"Param input [{param_name}] only used inputs configfile {inputs_conf_name}, but this is not used in the command", line=param.sourceline, xpath=tool_xml.getpath(param))
+            continue
+
+        change_format = tool_xml.find(f"./outputs//change_format/when[@input='{param_name}']") is not None
+        template = re.search(r"(^|[^\w])" + param_name + r"([^\w]|$)", template_code) is not None
+        action = re.search(r"(^|[^\w])" + param_name + r"([^\w]|$)", action_code) is not None
+        label = re.search(r"[^\w]" + param_name + r"([^\w]|$)", label_code) is not None
+        if template or action or label:
+            if template + action + label == 1:
+                only = "only "
+            else:
+                only = ""
+            # TODO check that template is used??
+            if template:
+                lint_ctx.warn(f"Param input [{param_name}] {only}used in a template macro, use a macro token instead.", line=param.sourceline, xpath=tool_xml.getpath(param))
+            if action:
+                lint_ctx.warn(f"Param input [{param_name}] {only}found in output actions, better use extended metadata.", line=param.sourceline, xpath=tool_xml.getpath(param))
+            if label:
+                lint_ctx.warn(f"Param input [{param_name}] {only}found in a label attribute, this is discouraged.", line=param.sourceline, xpath=tool_xml.getpath(param))
+            continue
+
+        if change_format:
+            lint_ctx.error(f"Param input [{param_name}] is only used in a change_format tag", line=param.sourceline, xpath=tool_xml.getpath(param))
+        else:
+            lint_ctx.error(f"Param input [{param_name}] not found in command or configfiles.", line=param.sourceline, xpath=tool_xml.getpath(param))
 
 
 def lint_repeats(tool_xml, lint_ctx):

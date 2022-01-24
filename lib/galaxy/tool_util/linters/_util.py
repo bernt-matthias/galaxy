@@ -1,45 +1,55 @@
 import re
 
+from Cheetah.Compiler import Compiler
+from Cheetah.Template import Template
+
+from galaxy.util import unicodify
+
 
 def get_code(tool_xml):
     """get code used in the Galaxy tool"""
+    # get code from command and configfiles
+    code = ""
+    for tag in [".//command", ".//configfile"]:
+        for cn in tool_xml.findall(tag):
+            code += cn.text
+    # TODO not sure about this line, I get UnicodeError for some tools otherwise (trinity)
+    code = "#encoding utf-8\n" + code
+    code = Template.compile(source=code, compilerClass=Compiler, returnAClass=False)
+    code = unicodify(code)
+    # print(code)
 
-    # get code from
-    # - command,
-    # - configfiles, and
-    # - template macros
+    # template macros
     # note: not necessary (& possible) for macro tokens which are expanded
     # during loading the xml (and removed from the macros tag)
-    code = ""
-    for tag in [".//command", ".//configfile", './/macros/macro[@type="template"]']:
-        print(f"tag {tag}")
-        for cn in tool_xml.findall(tag):
-            print(f"node {cn}")
-            code += cn.text
+    templatecode = ""
+    for cn in tool_xml.findall('.//macros/macro[@type="template"]'):
+        templatecode += cn.text
+    templatecode = "#encoding utf-8\n" + templatecode
+    templatecode = Template.compile(source=templatecode, compilerClass=Compiler, returnAClass=False)
+    templatecode = unicodify(templatecode)
 
-    # remove comments,
-    # TODO this is not optimal, but strings containing "##"" complicate this quite a bit
-    # TODO also this is not complete, e.g. multiline comments are missing
-    code = "\n".join([_ for _ in code.splitlines() if not _.lstrip().startswith("##")])
-
-    # get code from output filters
+    # get code from output filters (which use variables wo $)
     filtercode = ""
     for cn in tool_xml.findall("./outputs/*/filter"):
         filtercode += cn.text + "\n"
 
-    # get output labels which might contain code
+    # get output labels which might contain code (which use variables like ${var})
     labelcode = ""
     for cn in tool_xml.findall("./outputs/*[@label]"):
-        labelcode + cn.attrib["label"] + "\n"
+        labelcode += cn.attrib["label"] + "\n"
 
-    # TODO not optimal to mix filter code and the following, since they use cheetah synax, i.e. $param
-    for cn in tool_xml.findall("./outputs/*/actions/action[@default]"):
-        labelcode += cn.attrib["default"] + "\n"
+    actioncode = ""
+    for cn in tool_xml.findall('./outputs//conditional[@name]'):
+        actioncode += cn.attrib["name"] + "\n"
+    for cn in tool_xml.findall('./outputs//action/option[@type="from_param"]'):
+        actioncode += cn.attrib.get("name", "") + "\n"
+    for cn in tool_xml.findall("./outputs//action/option/filter[@ref]"):
+        actioncode += cn.attrib["ref"] + "\n"
+    for cn in tool_xml.findall("./outputs//action[@default]"):
+        actioncode += cn.attrib["default"] + "\n"
 
-    for cn in tool_xml.findall("./outputs/*/actions/conditional[@name]"):
-        labelcode += cn.attrib["name"] + "\n"
-
-    return code, filtercode, labelcode
+    return code, templatecode, filtercode, labelcode, actioncode
 
 
 def is_datasource(tool_xml):
