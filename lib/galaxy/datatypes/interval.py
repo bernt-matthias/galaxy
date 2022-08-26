@@ -86,6 +86,7 @@ class Interval(Tabular):
     MetadataElement(name="endCol", default=3, desc="End column", param=metadata.ColumnParameter)
     MetadataElement(
         name="strandCol",
+        default=0,
         desc="Strand column (click box & select)",
         param=metadata.ColumnParameter,
         optional=True,
@@ -459,6 +460,7 @@ class Bed(Interval):
     MetadataElement(name="endCol", default=3, desc="End column", param=metadata.ColumnParameter)
     MetadataElement(
         name="strandCol",
+        default=0,
         desc="Strand column (click box & select)",
         param=metadata.ColumnParameter,
         optional=True,
