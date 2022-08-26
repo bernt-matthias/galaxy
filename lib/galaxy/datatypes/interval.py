@@ -689,6 +689,7 @@ class BedStrict(Bed):
     MetadataElement(name="endCol", default=3, desc="End column", readonly=True, param=metadata.MetadataParameter)
     MetadataElement(
         name="strandCol",
+        default=0,
         desc="Strand column (click box & select)",
         readonly=True,
         param=metadata.MetadataParameter,
@@ -1615,11 +1616,13 @@ class ENCODEPeak(Interval):
     MetadataElement(name="endCol", default=3, desc="End column", param=metadata.ColumnParameter)
     MetadataElement(
         name="strandCol",
+        default=0,
         desc="Strand column (click box & select)",
         param=metadata.ColumnParameter,
         optional=True,
         no_value=0,
     )
+    MetadataElement(name="strandCol", default=0, desc="Strand column (click box & select)", param=metadata.ColumnParameter, optional=True, no_value=0)
     MetadataElement(name="columns", default=3, desc="Number of columns", readonly=True, visible=False)
 
     def sniff(self, filename):
