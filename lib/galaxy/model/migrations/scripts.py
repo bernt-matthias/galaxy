@@ -70,7 +70,7 @@ def verify_database_is_initialized(db_url: str) -> None:
     *NOTE: this function cannot determine whether a database has been properly
     initialized; it can only tell when a database has *not* been initialized.
     """
-    if not database_exists(db_url):
+    if False and not database_exists(db_url):
         raise DatabaseDoesNotExistError(db_url)
 
     engine = create_engine(db_url)

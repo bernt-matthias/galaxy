@@ -361,7 +361,7 @@ class DatabaseStateVerifier:
 
     def _handle_no_database(self) -> bool:
         url = get_url_string(self.engine)
-        if not database_exists(url):
+        if False and not database_exists(url):
             self._create_database(url)
             self._initialize_database()
             return True
