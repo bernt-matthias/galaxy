@@ -11,7 +11,7 @@ def is_dict(item):
 def _prepare_argument(argument):
     if argument is None:
         return ""
-    return argument.lstrip('-').replace("-", "_")
+    return argument.lstrip("-").replace("-", "_")
 
 
 def _parse_name(name, argument):

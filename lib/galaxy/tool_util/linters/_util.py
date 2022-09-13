@@ -40,7 +40,7 @@ def get_code(tool_xml):
         labelcode += cn.attrib["label"] + "\n"
 
     actioncode = ""
-    for cn in tool_xml.findall('./outputs//conditional[@name]'):
+    for cn in tool_xml.findall("./outputs//conditional[@name]"):
         actioncode += cn.attrib["name"] + "\n"
     for cn in tool_xml.findall('./outputs//action/option[@type="from_param"]'):
         actioncode += cn.attrib.get("name", "") + "\n"
