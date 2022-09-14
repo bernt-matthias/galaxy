@@ -1,13 +1,21 @@
 """This module contains a linting functions for tool inputs."""
 import re
 
+from galaxy.tool_util.linters._util import (
+    get_code,
+    is_datasource,
+    is_valid_cheetah_placeholder,
+)
+from galaxy.tool_util.parser.util import (
+    _parse_name,
+    _prepare_argument,
+)
 from galaxy.util import string_as_bool
 from ._util import (
     get_code,
     is_datasource,
     is_valid_cheetah_placeholder,
 )
-from ..parser.util import _parse_name, _prepare_argument
 
 FILTER_TYPES = [
     "data_meta",
