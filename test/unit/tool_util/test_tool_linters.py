@@ -621,6 +621,19 @@ INPUTS_USED_PARAMETER_IN_COMMAND_WITH_INPUTS2 = """
 </tool>
 """
 
+# test case checking if syntax errors are reported
+INPUTS_USED_PARAMETER_SYNTAX_ERROR = """
+<tool>
+    <command>
+        #if $param
+            this is unfinished if 
+    </command>
+    <inputs>
+        <param name="param" type="boolean"/>
+    </inputs>
+</tool>
+"""
+
 # tool xml for repeats linter
 REPEATS = """
 <tool>
@@ -1525,6 +1538,27 @@ def test_inputs_used_parameter_in_command_with_inputs2(lint_ctx):
         in lint_ctx.error_messages
     )
     assert len(lint_ctx.error_messages) == 1
+
+
+def test_inputs_used_parameter_syntax_error(lint_ctx):
+    tool_source = get_xml_tool_source(INPUTS_USED_PARAMETER_SYNTAX_ERROR)
+    run_lint(lint_ctx, inputs.lint_inputs_used, tool_source)
+    assert not lint_ctx.info_messages
+    assert not lint_ctx.valid_messages
+    assert not lint_ctx.warn_messages
+    assert """Invalid cheetah found 
+
+Some #directives are missing their corresponding #end ___ tag: if
+Line 5, column 4
+
+Line|Cheetah Code
+----|-------------------------------------------------------------
+2   |
+3   |        #if $param
+4   |            this is unfinished if 
+5   |    
+        ^
+""" in lint_ctx.error_messages
 
 
 def test_inputs_repeats(lint_ctx):

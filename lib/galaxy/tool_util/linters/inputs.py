@@ -1,6 +1,8 @@
 """This module contains a linting functions for tool inputs."""
 import re
 
+from Cheetah.Parser import ParseError
+
 from galaxy.tool_util.linters._util import (
     get_code,
     is_datasource,
@@ -584,7 +586,13 @@ def lint_inputs_used(tool_xml, lint_ctx):
     - if the parameter only appears in change_format
     - or if none of the previous cases apply
     """
-    code, template_code, filter_code, label_code, action_code = get_code(tool_xml)
+    tool_node = tool_xml.getroot()
+    try:
+        code, template_code, filter_code, label_code, action_code = get_code(tool_xml)
+    except ParseError as pe:
+        lint_ctx.error(f"Invalid cheetah found {pe}", node=tool_node)
+        return
+
     inputs = tool_xml.findall("./inputs//param")
     for param in inputs:
         try:
