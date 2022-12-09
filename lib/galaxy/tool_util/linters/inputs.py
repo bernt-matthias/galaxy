@@ -13,11 +13,6 @@ from galaxy.tool_util.parser.util import (
     _prepare_argument,
 )
 from galaxy.util import string_as_bool
-from ._util import (
-    get_code,
-    is_datasource,
-    is_valid_cheetah_placeholder,
-)
 
 FILTER_TYPES = [
     "data_meta",
@@ -590,7 +585,7 @@ def lint_inputs_used(tool_xml, lint_ctx):
     try:
         code, template_code, filter_code, label_code, action_code = get_code(tool_xml)
     except ParseError as pe:
-        lint_ctx.error(f"Invalid cheetah found {pe}", node=tool_node)
+        lint_ctx.error(f"Invalid cheetah found{pe}", node=tool_node)
         return
 
     inputs = tool_xml.findall("./inputs//param")

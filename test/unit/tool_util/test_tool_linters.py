@@ -626,8 +626,7 @@ INPUTS_USED_PARAMETER_SYNTAX_ERROR = """
 <tool>
     <command>
         #if $param
-            this is unfinished if 
-    </command>
+            this is unfinished if</command>
     <inputs>
         <param name="param" type="boolean"/>
     </inputs>
@@ -1546,19 +1545,21 @@ def test_inputs_used_parameter_syntax_error(lint_ctx):
     assert not lint_ctx.info_messages
     assert not lint_ctx.valid_messages
     assert not lint_ctx.warn_messages
-    assert """Invalid cheetah found 
+    assert (
+        """Invalid cheetah found
 
 Some #directives are missing their corresponding #end ___ tag: if
-Line 5, column 4
+Line 4, column 33
 
 Line|Cheetah Code
 ----|-------------------------------------------------------------
 2   |
 3   |        #if $param
-4   |            this is unfinished if 
-5   |    
-        ^
-""" in lint_ctx.error_messages
+4   |            this is unfinished if
+                                     ^
+"""
+        in lint_ctx.error_messages
+    )
 
 
 def test_inputs_repeats(lint_ctx):
