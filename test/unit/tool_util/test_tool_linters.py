@@ -451,7 +451,7 @@ INPUTS_DUPLICATE_NAMES = """
 
 # tests for many different cheetah placeholder syntax possibilities
 # that should pass and two that should give an error
-INPUTS_PARAMETER_IN_COMMAND = """
+INPUTS_USED_PARAMETER_IN_COMMAND = """
 <tool>
     <command>
         $simple1
@@ -1579,10 +1579,11 @@ def test_outputs_unnamed_invalid_name(lint_ctx):
     assert "Tool output name [2output] is not a valid Cheetah placeholder." in lint_ctx.warn_messages
     assert "Collection output with undefined 'type' found." in lint_ctx.warn_messages
     assert "Tool collection output 2output doesn't define an output format." in lint_ctx.warn_messages
+    assert "Tool output [2output] uses duplicated label '${tool.name} on ${on_string}'" in lint_ctx.error_messages
     assert len(lint_ctx.info_messages) == 1
     assert not lint_ctx.valid_messages
     assert len(lint_ctx.warn_messages) == 5
-    assert not lint_ctx.error_messages
+    assert len(lint_ctx.error_messages) == 1
 
 
 def test_outputs_format_input(lint_ctx):
