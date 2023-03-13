@@ -18,6 +18,7 @@ from typing import (
     TYPE_CHECKING,
     Union,
 )
+
 from typing_extensions import Literal
 
 from galaxy.util import (
@@ -48,7 +49,6 @@ from ..mulled.util import (
     default_mulled_conda_channels_from_env,
     mulled_tags_for,
     split_tag,
-    Target,
     v1_image_name,
     v2_image_name,
     version_sorted,
@@ -66,6 +66,7 @@ if TYPE_CHECKING:
         AppInfo,
         ToolInfo,
     )
+    from ..mulled.util import Target
 
 log = logging.getLogger(__name__)
 
@@ -272,7 +273,7 @@ def get_filter(namespace: Optional[str]) -> Callable[[str], bool]:
 
 
 def find_best_matching_cached_image(
-    targets: List[Target],
+    targets: List["Target"],
     cached_images: List[
         Union[CachedMulledImageSingleTarget, CachedV1MulledImageMultiTarget, CachedV2MulledImageMultiTarget]
     ],
@@ -329,7 +330,7 @@ def find_best_matching_cached_image(
 
 
 def docker_cached_container_description(
-    targets: List[Target],
+    targets: List["Target"],
     namespace: str,
     hash_func: Literal["v1", "v2"] = "v2",
     shell: str = DEFAULT_CONTAINER_SHELL,
@@ -353,7 +354,7 @@ def docker_cached_container_description(
 
 
 def singularity_cached_container_description(
-    targets: List[Target],
+    targets: List["Target"],
     cache_directory: CacheDirectory,
     hash_func: Literal["v1", "v2"] = "v2",
     shell: str = DEFAULT_CONTAINER_SHELL,
@@ -378,7 +379,7 @@ def singularity_cached_container_description(
 
 
 def targets_to_mulled_name(
-    targets: List[Target],
+    targets: List["Target"],
     hash_func: Literal["v1", "v2"],
     namespace: str,
     resolution_cache: Optional[ResolutionCache] = None,
@@ -595,7 +596,7 @@ class MulledDockerContainerResolver(CliContainerResolver):
 
     def cached_container_description(
         self,
-        targets: List[Target],
+        targets: List["Target"],
         namespace: str,
         hash_func: Literal["v1", "v2"],
         resolution_cache: Optional[ResolutionCache] = None,
@@ -711,7 +712,7 @@ class MulledSingularityContainerResolver(SingularityCliContainerResolver, Mulled
 
     def cached_container_description(
         self,
-        targets: List[Target],
+        targets: List["Target"],
         namespace: str,
         hash_func: Literal["v1", "v2"],
         resolution_cache: Optional[ResolutionCache] = None,
@@ -835,11 +836,11 @@ class BuildMulledSingularityContainerResolver(SingularityCliContainerResolver):
         return f"BuildSingularityContainerResolver[cache_directory={self.cache_directory.path}]"
 
 
-def mulled_targets(tool_info: "ToolInfo") -> List[Target]:
+def mulled_targets(tool_info: "ToolInfo") -> List["Target"]:
     return requirements_to_mulled_targets(tool_info.requirements)
 
 
-def image_name(targets: List[Target], hash_func: Literal["v1", "v2"]) -> Optional[str]:
+def image_name(targets: List["Target"], hash_func: Literal["v1", "v2"]) -> Optional[str]:
     if len(targets) == 0:
         return "no targets"
     elif hash_func == "v2":

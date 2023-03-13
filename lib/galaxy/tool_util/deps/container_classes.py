@@ -5,7 +5,6 @@ from abc import (
     abstractmethod,
 )
 from logging import getLogger
-from uuid import uuid4
 from typing import (
     Any,
     Dict,
@@ -15,6 +14,8 @@ from typing import (
     Type,
     TYPE_CHECKING,
 )
+from uuid import uuid4
+
 from typing_extensions import Protocol
 
 from galaxy.util import (
@@ -32,10 +33,12 @@ from .requirements import (
 )
 
 if TYPE_CHECKING:
-    from .dependencies import AppInfo, JobInfo, ToolInfo
-    from .requirements import (
-        ContainerDescription,
+    from .dependencies import (
+        AppInfo,
+        JobInfo,
+        ToolInfo,
     )
+    from .requirements import ContainerDescription
 
 log = getLogger(__name__)
 
@@ -572,7 +575,6 @@ class SingularityContainer(Container, HasDockerLikeVolumes):
 
         volumes_raw = self._expand_volume_str(self.destination_info.get("singularity_volumes", "$defaults"))
         preprocessed_volumes_list = preprocess_volumes(volumes_raw, self.container_type)
-        log.error(preprocess_volumes)
         volumes = [DockerVolume.from_str(v) for v in preprocessed_volumes_list]
 
         run_command = singularity_util.build_singularity_run_command(

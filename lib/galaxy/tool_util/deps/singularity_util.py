@@ -1,6 +1,11 @@
 import os
 import shlex
-from typing import List, Optional, Tuple, TYPE_CHECKING
+from typing import (
+    List,
+    Optional,
+    Tuple,
+    TYPE_CHECKING,
+)
 
 if TYPE_CHECKING:
     from .container_volumes import DockerVolume

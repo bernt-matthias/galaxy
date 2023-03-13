@@ -39,13 +39,13 @@ if TYPE_CHECKING:
     from beaker.cache import Cache
     from requests import Session
 
+    from galaxy.util.plugin_config import PluginConfigSource
+    from .container_resolvers import ContainerResolver
     from .dependencies import (
         AppInfo,
-        ToolInfo,
         JobInfo,
+        ToolInfo,
     )
-    from .container_resolvers import ContainerResolver
-    from galaxy.util.plugin_config import PluginConfigSource
 
 log = logging.getLogger(__name__)
 
