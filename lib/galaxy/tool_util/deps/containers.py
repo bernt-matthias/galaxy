@@ -131,8 +131,8 @@ class ContainerFinder:
             if container_description:
                 container_id = container_description.identifier
                 container_type = container_description.type
-            assert container_id
-            assert container_type
+            # assert container_id
+            # assert container_type
             container = self.__destination_container(
                 container_id,
                 container_type,
