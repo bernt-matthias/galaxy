@@ -25,7 +25,6 @@ if TYPE_CHECKING:
     from requests import Session
 
     from .container_resolvers import ContainerResolver
-    from .containers import ResolvedContainerDescription
     from galaxy.structured_app import StructuredApp
     from galaxy.tool_util.deps.container_resolvers import ResolutionCache
 
