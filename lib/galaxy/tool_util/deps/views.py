@@ -5,6 +5,7 @@ from typing import (
     Optional,
     TYPE_CHECKING,
 )
+
 from typing_extensions import (
     NotRequired,
     TypedDict,
@@ -24,9 +25,9 @@ from .resolvers import (
 if TYPE_CHECKING:
     from requests import Session
 
-    from .container_resolvers import ContainerResolver
     from galaxy.structured_app import StructuredApp
     from galaxy.tool_util.deps.container_resolvers import ResolutionCache
+    from .container_resolvers import ContainerResolver
 
 
 class DependencyResolversView:

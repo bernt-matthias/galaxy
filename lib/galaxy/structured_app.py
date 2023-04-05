@@ -29,8 +29,8 @@ from galaxy.quota import QuotaAgent
 from galaxy.security.idencoding import IdEncodingHelper
 from galaxy.security.vault import Vault
 from galaxy.tool_shed.cache import ToolShedRepositoryCache
-from galaxy.tool_util.deps.views import DependencyResolversView
 from galaxy.tool_util.deps.containers import ContainerFinder
+from galaxy.tool_util.deps.views import DependencyResolversView
 from galaxy.tool_util.verify import test_data
 from galaxy.util.dbkeys import GenomeBuilds
 from galaxy.util.tool_shed.tool_shed_registry import Registry as ToolShedRegistry
