@@ -80,7 +80,7 @@ def _assert_container_in_cache_singularity(
     hash_func: Literal["v1", "v2"] = "v2",
 ):
     cache_dir_contents = []
-    for dirpath, dirs, files in safe_walk(cache_directory):
+    for dirpath, _, files in safe_walk(cache_directory):
         for f in files:
             cache_dir_contents.append(os.path.join(dirpath, f))
     # explicit containers are stored in subdirs that are included in the container_name
@@ -148,7 +148,7 @@ class ContainerizedIntegrationTestCase(IntegrationTestCase):
         shell(cmd)
         if not os.path.exists(self._app.config.container_image_cache_path):
             return
-        for dirpath, dirs, files in safe_walk(self._app.config.container_image_cache_path):
+        for dirpath, _, files in safe_walk(self._app.config.container_image_cache_path):
             for f in files:
                 os.unlink(os.path.join(dirpath, f))
 
