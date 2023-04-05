@@ -79,6 +79,7 @@ class CachedExplicitSingularityContainerResolver(CliContainerResolver):
     cli = "singularity"
 
     def __init__(self, app_info: "AppInfo", **kwargs):
+        kwargs["app_info"] = app_info
         super().__init__(**kwargs)
         self.cache_directory_path = kwargs.get(
             "cache_directory", os.path.join(kwargs["app_info"].container_image_cache_path, "singularity", "explicit")

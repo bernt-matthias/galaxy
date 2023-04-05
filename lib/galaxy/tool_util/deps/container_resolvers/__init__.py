@@ -80,3 +80,18 @@ class ContainerResolver(Dictifiable, metaclass=ABCMeta):
 
     def __str__(self):
         return f"{self.__class__.__name__}[]"
+
+
+class NullContainerResolver(ContainerResolver):
+    """
+    helper ContainerResolver that does not resolve ever
+
+    for testing
+    """
+
+    resolver_type = "null"
+
+    def resolve(
+        self, enabled_container_types: List[str], tool_info: "ToolInfo", **kwds
+    ) -> Optional["ContainerDescription"]:
+        return None

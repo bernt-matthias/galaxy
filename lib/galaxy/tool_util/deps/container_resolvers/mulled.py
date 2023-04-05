@@ -481,7 +481,7 @@ class CliContainerResolver(ContainerResolver):
     container_type: str = "docker"
     cli: str = "docker"
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs) -> None:
         self._cli_available: bool = bool(which(self.cli))
         super().__init__(*args, **kwargs)
 
