@@ -171,7 +171,8 @@ class ContainerFinder:
 
         # Otherwise lets see if we can find container for the tool.
         container_registry = self._container_registry_for_destination(destination_info)
-        container_description = container_registry.find_best_container_description(enabled_container_types, tool_info)
+        auto_install = getattr(self.app_info, "container_auto_install", True)
+        container_description = container_registry.find_best_container_description(enabled_container_types, tool_info, install=auto_install)
         container = __destination_container(container_description)
         if container:
             return container

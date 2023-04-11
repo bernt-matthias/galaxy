@@ -378,7 +378,7 @@ mapping:
         required: false
         desc: |
           Set to true to instruct Galaxy to look for and install missing tool
-          dependencies before each job runs.
+          dependencies before each job run.
 
       conda_auto_init:
         type: bool
@@ -581,6 +581,14 @@ mapping:
           resolvers to enable can be embedded into Galaxy's config with this option.
           This has no effect if a container_resolvers_config_file is used.
           Takes the same options that can be set in container_resolvers_config_file.
+
+      container_auto_install:
+        type: bool
+        default: true
+        required: false
+        desc: |
+          Set to true to instruct Galaxy to look for and install missing container
+          dependencies before each job run.
 
       involucro_path:
         type: str

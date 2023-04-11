@@ -498,7 +498,7 @@
 
 :Description:
     Set to true to instruct Galaxy to look for and install missing
-    tool dependencies before each job runs.
+    tool dependencies before each job run.
 :Default: ``false``
 :Type: bool
 
@@ -773,7 +773,7 @@
     container resolvers to use when discovering containers for Galaxy.
     If this is set to None, the default container resolvers loaded is
     determined by enable_mulled_containers. For available options see
-    config/container_resolvers_conf.xml.sample.
+    https://docs.galaxyproject.org/en/master/admin/container_resolvers.rst.
 :Default: ``None``
 :Type: str
 
@@ -790,6 +790,17 @@
     that can be set in container_resolvers_config_file.
 :Default: ``None``
 :Type: seq
+
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+``container_auto_install``
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+:Description:
+    Set to true to instruct Galaxy to look for and install missing
+    container dependencies before each job run.
+:Default: ``true``
+:Type: bool
 
 
 ~~~~~~~~~~~~~~~~~~

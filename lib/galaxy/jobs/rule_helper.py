@@ -51,7 +51,8 @@ class RuleHelper:
         tool_info = ToolInfo(
             tool.containers, tool.requirements, tool.requires_galaxy_python_environment, tool.docker_env_pass_through
         )
-        container_description = self.app.container_finder.find_best_container_description([container_type], tool_info)
+        auto_install = getattr(self.app, "container_auto_install")
+        container_description = self.app.container_finder.find_best_container_description([container_type], tool_info, install=auto_install)
         return container_description is not None
 
     def supports_docker(self, job_or_tool):

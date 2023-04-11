@@ -311,6 +311,7 @@ class MinimalGalaxyApplication(BasicSharedApp, HaltableContainer, SentryClientMi
             enable_mulled_containers=self.config.enable_mulled_containers,
             container_resolvers_config_file=self.config.container_resolvers_config_file,
             container_resolvers_config_dict=self.config.container_resolvers,
+            container_auto_install=self.config.container_auto_install,
             involucro_path=self.config.involucro_path,
             involucro_auto_init=self.config.involucro_auto_init,
             mulled_channels=self.config.mulled_channels,

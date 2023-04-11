@@ -28,6 +28,7 @@ class AppInfo:
         enable_mulled_containers: bool = False,
         container_resolvers_config_file: Optional[str] = None,
         container_resolvers_config_dict: Optional[Dict[str, Any]] = None,
+        container_auto_install: bool = True,
         involucro_path: Optional[str] = None,
         involucro_auto_init: bool = True,
         mulled_channels: List[str] = DEFAULT_CHANNELS,
@@ -43,6 +44,7 @@ class AppInfo:
         self.enable_mulled_containers = enable_mulled_containers
         self.container_resolvers_config_file = container_resolvers_config_file
         self.container_resolvers_config_dict = container_resolvers_config_dict
+        self.container_auto_install = container_auto_install
         self.involucro_path = involucro_path
         self.involucro_auto_init = involucro_auto_init
         self.mulled_channels = mulled_channels
