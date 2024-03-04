@@ -372,6 +372,7 @@ class MinimalGalaxyApplication(BasicSharedApp, HaltableContainer, SentryClientMi
         # Initialize tool data tables using the config defined by self.config.tool_data_table_config_path.
         self.tool_data_tables: BaseToolDataTableManager = ToolDataTableManager(
             tool_data_path=self.config.tool_data_path,
+            tool_data_path_cache_update_interval=self.config.tool_data_path_cache_update_interval,
             config_filename=self.config.tool_data_table_config_path,
             other_config_dict=self.config,
         )

@@ -668,6 +668,19 @@ mapping:
           Directory where Tool Data Table related files will be placed when installed from a
           ToolShed. Defaults to the value of the 'tool_data_path' option.
 
+      tool_data_path_cache_update_interval:
+        type: int
+        default: 1
+        required: false
+        desc: |
+          The paths to the loc files are cached to allow for faster existence checks.
+          The cache is invalidated after the update interval. An update of this cache is
+          implemented by recursively listing all `.loc` files in the `tool_data` dir.
+          For cache misses the file existence is checked on the disk.
+          The value should be certainly be larger than the time needed to iterate over
+          `tool_data` dir. For production instances a value that is in the order of magnitude
+          of the startup time seems to be a good value.
+
       watch_tool_data_dir:
         type: str
         default: 'false'

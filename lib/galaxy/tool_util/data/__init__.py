@@ -88,13 +88,14 @@ class StoresConfigFilePaths(Protocol):
 class ToolDataPathFiles:
     update_time: float
 
-    def __init__(self, tool_data_path):
+    def __init__(self, tool_data_path, tool_data_path_cache_update_interval: int):
         self.tool_data_path = os.path.abspath(tool_data_path)
         self.update_time = 0
+        self.tool_data_path_cache_update_interval = tool_data_path_cache_update_interval
 
     @property
     def tool_data_path_files(self) -> Set[str]:
-        if time.time() - self.update_time > 1:
+        if time.time() - self.update_time > self.tool_data_path_cache_update_interval:
             self.update_files()
         return self._tool_data_path_files
 
@@ -926,6 +927,7 @@ class ToolDataTableManager(Dictifiable):
     def __init__(
         self,
         tool_data_path: str,
+        tool_data_path_cache_update_interval: int,
         config_filename: Optional[Union[StrPath, List[StrPath]]] = None,
         tool_data_table_config_path_set=None,
         other_config_dict: Optional[StoresConfigFilePaths] = None,
@@ -935,12 +937,13 @@ class ToolDataTableManager(Dictifiable):
         # at server startup. If tool shed repositories are installed that contain a valid file named tool_data_table_conf.xml.sample, entries
         # from that file are inserted into this dict at the time of installation.
         self.data_tables = {}
-        self.tool_data_path_files = ToolDataPathFiles(self.tool_data_path)
+        self.tool_data_path_files = ToolDataPathFiles(self.tool_data_path, tool_data_path_cache_update_interval = tool_data_path_cache_update_interval)
         self.other_config_dict = other_config_dict or {}
         for single_config_filename in util.listify(config_filename):
             if not single_config_filename:
                 continue
             self.load_from_config_file(single_config_filename, self.tool_data_path, from_shed_config=False)
+        self.tool_data_path_files.enable_update = True
 
     def index(self) -> ToolDataEntryList:
         data_tables = [ToolDataEntry(**table.to_dict()) for table in self.data_tables.values()]
