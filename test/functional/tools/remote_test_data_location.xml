@@ -1,40 +1,79 @@
 <tool id="remote_test_data_location" name="Remote test data location" version="1.0.0" profile="22.01">
     <command><![CDATA[
         cat '$input' > '$output'
+	#if $input2    
+            && cat '$input2' > '$output2'
+	#end if
+        && echo '$input' >> tmp_stdout
+        && echo '$input2' >> tmp_stdout
+        && sort -u tmp_stdout
     ]]></command>
     <inputs>
         <param name="input" type="data" format="txt" label="Input"/>
+        <param name="input2" type="data" optional="true" format="txt" label="Input"/>
     </inputs>
     <outputs>
         <data name="output" format="txt"/>
+	<data name="output2" format="txt">
+            <filter>input2</filter>
+	</data>
     </outputs>
     <tests>
         <test>
             <!-- When only the `location` is defined, the name of the input file will be infered from the last component of the URL.
                 In this example, it will be equivalent to `value="hello.txt"`. -->
             <param name="input" location="https://raw.githubusercontent.com/galaxyproject/planemo/7be1bf5b3971a43eaa73f483125bfb8cabf1c440/tests/data/hello.txt"/>
+            <param name="input2" location="https://raw.githubusercontent.com/galaxyproject/planemo/master/tests/data/not_hello.txt"/>
             <output name="output">
                 <assert_contents>
                     <has_line line="Hello World!"/>
+                    <has_line line="Not Hello World!" negate="true"/>
                 </assert_contents>
             </output>
+            <output name="output2">
+                <assert_contents>
+                    <has_line line="Hello World!" negate="true"/>
+                    <has_line line="Not Hello World!" negate="false"/>
+                </assert_contents>
+            </output>
+        </test>
+        <test>
+            <param name="input" location="https://raw.githubusercontent.com/galaxyproject/planemo/refs/heads/master/tests/data/1.bed"/>
+	    <param name="input2" location="https://raw.githubusercontent.com/galaxyproject/galaxy/refs/heads/dev/test-data/1.bed"/>
+	    <assert_stdout>
+                <has_n_lines n="2"/>
+            </assert_stdout>
         </test>
         <test>
             <!-- When the `value` and the `location` are defined, if the local file is missing, the remote file pointed by location will be pre-downloaded
                 to the test data cache directory (GALAXY_TEST_DATA_REPO_CACHE) and then uploaded to Galaxy as usual. -->
             <param name="input" value="missing_file_1.txt" location="https://raw.githubusercontent.com/galaxyproject/planemo/7be1bf5b3971a43eaa73f483125bfb8cabf1c440/tests/data/hello.txt"/>
+            <param name="input2" value="missing_file_2.txt" location="https://raw.githubusercontent.com/galaxyproject/planemo/master/tests/data/not_hello.txt"/>
             <output name="output">
                 <assert_contents>
                     <has_line line="Hello World!"/>
+                    <has_line line="Not Hello World!" negate="true"/>
+                </assert_contents>
+            </output>
+            <output name="output2">
+                <assert_contents>
+                    <has_line line="Hello World!" negate="true"/>
+                    <has_line line="Not Hello World!" negate="false"/>
                 </assert_contents>
             </output>
         </test>
         <test>
             <!-- When the `value` and the `location` are defined, if the local file already exists, the location will be ignored. -->
             <param name="input" value="simple_line.txt" location="https://raw.githubusercontent.com/galaxyproject/planemo/7be1bf5b3971a43eaa73f483125bfb8cabf1c440/tests/data/hello.txt"/>
+            <param name="input" value="simple_line_alternative.txt" location="https://raw.githubusercontent.com/galaxyproject/planemo/master/tests/data/not_hello.txt"/>
             <output name="output">
                 <assert_contents>
                     <has_line line="This is a line of text."/>
+                </assert_contents>
+            </output>
+            <output name="output">
+                <assert_contents>
+                    <has_line line="This is a different line of text."/>
                 </assert_contents>
             </output>
         </test>
