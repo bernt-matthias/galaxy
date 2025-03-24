@@ -395,21 +395,22 @@ class RequiresDiskUsageRecalculation:
 
         This could probably be done more efficiently.
         """
-        log.info("Recalculating disk usage for users whose data were purged")
-        for user_id in sorted(self.__recalculate_disk_usage_user_ids):
-            quota_source_map = self.object_store.get_quota_source_map()
-            statements = calculate_user_disk_usage_statements(user_id, quota_source_map)
+        log.info("DISABLED TEMPORARILY Recalculating disk usage for users whose data were purged")
+        # log.info("Recalculating disk usage for users whose data were purged")
+        # for user_id in sorted(self.__recalculate_disk_usage_user_ids):
+        #     quota_source_map = self.object_store.get_quota_source_map()
+        #     statements = calculate_user_disk_usage_statements(user_id, quota_source_map)
 
-            for sql, args in statements:
-                sql, _ = re.subn(r"\:([\w]+)", r"%(\1)s", sql)
-                new_args = {}
-                for key, val in args.items():
-                    if isinstance(val, list):
-                        val = tuple(val)
-                    new_args[key] = val
-                self._update(sql, new_args, add_event=False)
+        #     for sql, args in statements:
+        #         sql, _ = re.subn(r"\:([\w]+)", r"%(\1)s", sql)
+        #         new_args = {}
+        #         for key, val in args.items():
+        #             if isinstance(val, list):
+        #                 val = tuple(val)
+        #             new_args[key] = val
+        #         self._update(sql, new_args, add_event=False)
 
-            self.log.info("recalculate_disk_usage user_id %i" % user_id)
+        #     self.log.info("recalculate_disk_usage user_id %i" % user_id)
 
 
 class RemovesMetadataFiles(RemovesObjects):
