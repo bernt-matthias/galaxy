@@ -6,10 +6,7 @@ This is capturing code shared by file source templates and object store template
 import logging
 import os
 from copy import deepcopy
-from collections.abc import (
-    Iterable,
-    Sequence,
-)
+from collections.abc import Iterable
 from typing import (
     Any,
     Callable,
@@ -17,6 +14,7 @@ from typing import (
     Dict,
     List,
     Optional,
+    Sequence,
     Tuple,
     Type,
     TypeVar,
