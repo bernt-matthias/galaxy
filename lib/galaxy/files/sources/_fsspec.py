@@ -303,6 +303,8 @@ class FsspecFilesSource(BaseFilesSource[FsspecTemplateConfigType, FsspecResolved
         """Handle standard directory listing without query filtering."""
         entries_list = []
         entries: list[dict] = fs.ls(path, detail=True)
+        # Normalize path for comparison (remove trailing slash)
+        normalized_path = path.rstrip("/")
         for entry in entries:
             entry_path = entry.get("name", entry.get("path", ""))
             # Skip entries that match the directory being listed (some fsspec implementations
