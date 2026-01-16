@@ -48,6 +48,7 @@ FileSourceTemplateType = Literal[
     "dataverse",
     "huggingface",
     "omero",
+    "ssh",
 ]
 
 
@@ -155,6 +156,37 @@ class FtpFileSourceConfiguration(StrictModel):
     passwd: Optional[str] = None
     writable: bool = False
     tls: bool = False
+
+
+class SshFileSourceTemplateConfiguration(StrictModel):
+    type: Literal["ssh"]
+    host: Union[str, TemplateExpansion]
+    user: Optional[Union[str, TemplateExpansion]] = None
+    passwd: Optional[Union[str, TemplateExpansion]] = None
+    # pkey: Optional[Union[str, TemplateExpansion]] = None
+    # timeout: Union[int, TemplateExpansion] = 10
+    port: Union[int, TemplateExpansion] = 22
+    # compress: Union[bool, TemplateExpansion] = False
+    # config_path: Union[str, TemplateExpansion] = "~/.ssh/config"
+    path: Union[str, TemplateExpansion]
+    writable: Union[bool, TemplateExpansion] = False
+    template_start: Optional[str] = None
+    template_end: Optional[str] = None
+
+
+class SshFileSourceConfiguration(StrictModel):
+    type: Literal["ssh"]
+    host: str
+    user: Optional[str] = None
+    passwd: Optional[str] = None
+    # pkey: Optional[str] = None
+    # timeout: int = 10
+    port: int = 22
+    # compress: bool = False
+    # config_path: str = "~/.ssh/config"
+    path: str
+    writable: bool = False
+
 
 
 class AzureFileSourceTemplateConfiguration(StrictModel):
@@ -371,6 +403,7 @@ FileSourceTemplateConfiguration = Annotated[
         DataverseFileSourceTemplateConfiguration,
         HuggingFaceFileSourceTemplateConfiguration,
         OmeroFileSourceTemplateConfiguration,
+        SshFileSourceTemplateConfiguration,
     ],
     Field(discriminator="type"),
 ]
@@ -393,6 +426,7 @@ FileSourceConfiguration = Annotated[
         DataverseFileSourceConfiguration,
         HuggingFaceFileSourceConfiguration,
         OmeroFileSourceConfiguration,
+        SshFileSourceConfiguration,
     ],
     Field(discriminator="type"),
 ]
@@ -473,6 +507,7 @@ TypesToConfigurationClasses: dict[FileSourceTemplateType, type[FileSourceConfigu
     "dataverse": DataverseFileSourceConfiguration,
     "huggingface": HuggingFaceFileSourceConfiguration,
     "omero": OmeroFileSourceConfiguration,
+    "ssh": SshFileSourceConfiguration,
 }
 
 
