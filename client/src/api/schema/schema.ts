@@ -21151,8 +21151,10 @@ export interface components {
         TaskState: "PENDING" | "STARTED" | "RETRY" | "FAILURE" | "SUCCESS";
         /** TemplateSecret */
         TemplateSecret: {
+            /** Default */
+            default?: string | null;
             /** Help */
-            help: string | null;
+            help?: string | null;
             /** Label */
             label?: string | null;
             /** Name */
@@ -21160,13 +21162,10 @@ export interface components {
         };
         /** TemplateVariableBoolean */
         TemplateVariableBoolean: {
-            /**
-             * Default
-             * @default false
-             */
-            default: boolean;
+            /** Default */
+            default?: boolean | null;
             /** Help */
-            help: string | null;
+            help?: string | null;
             /** Label */
             label?: string | null;
             /** Name */
@@ -21187,13 +21186,10 @@ export interface components {
         };
         /** TemplateVariableInteger */
         TemplateVariableInteger: {
-            /**
-             * Default
-             * @default 0
-             */
-            default: number;
+            /** Default */
+            default?: number | null;
             /** Help */
-            help: string | null;
+            help?: string | null;
             /** Label */
             label?: string | null;
             /** Name */
@@ -21217,7 +21213,7 @@ export interface components {
             /** Default */
             default?: string | null;
             /** Help */
-            help: string | null;
+            help?: string | null;
             /** Label */
             label?: string | null;
             /** Name */
@@ -21238,13 +21234,10 @@ export interface components {
         };
         /** TemplateVariableString */
         TemplateVariableString: {
-            /**
-             * Default
-             * @default
-             */
-            default: string;
+            /** Default */
+            default?: string | null;
             /** Help */
-            help: string | null;
+            help?: string | null;
             /** Label */
             label?: string | null;
             /** Name */
