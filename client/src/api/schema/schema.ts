@@ -21159,6 +21159,8 @@ export interface components {
             label?: string | null;
             /** Name */
             name: string;
+            /** Optional */
+            optional?: boolean | null;
         };
         /** TemplateVariableBoolean */
         TemplateVariableBoolean: {
@@ -21170,6 +21172,8 @@ export interface components {
             label?: string | null;
             /** Name */
             name: string;
+            /** Optional */
+            optional?: boolean | null;
             /**
              * Type
              * @constant
@@ -21194,6 +21198,8 @@ export interface components {
             label?: string | null;
             /** Name */
             name: string;
+            /** Optional */
+            optional?: boolean | null;
             /**
              * Type
              * @constant
@@ -21218,6 +21224,8 @@ export interface components {
             label?: string | null;
             /** Name */
             name: string;
+            /** Optional */
+            optional?: boolean | null;
             /**
              * Type
              * @constant
@@ -21242,6 +21250,8 @@ export interface components {
             label?: string | null;
             /** Name */
             name: string;
+            /** Optional */
+            optional?: boolean | null;
             /**
              * Type
              * @constant

@@ -96,7 +96,7 @@ const OPTIONAL_SECRET_TEMPLATE: ObjectStoreTemplateSummary = {
         {
             name: "optional_secret",
             help: "An optional secret",
-            default: "default_value",
+            optional: true,
         },
     ],
     id: "moo",
@@ -115,6 +115,7 @@ const OPTIONAL_VAR_WITH_VALIDATION_TEMPLATE: ObjectStoreTemplateSummary = {
             type: "string",
             help: "optional var help",
             default: "",
+            optional: true,
             validators: [
                 {
                     type: "length",
@@ -131,6 +132,7 @@ const OPTIONAL_VAR_WITH_VALIDATION_TEMPLATE: ObjectStoreTemplateSummary = {
             name: "mysecret",
             help: "mysecret help",
             default: "default_secret",
+            optional: true,
         },
     ],
     id: "moo",
