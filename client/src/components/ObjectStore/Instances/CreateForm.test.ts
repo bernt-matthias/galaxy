@@ -131,7 +131,6 @@ const OPTIONAL_VAR_WITH_VALIDATION_TEMPLATE: ObjectStoreTemplateSummary = {
         {
             name: "mysecret",
             help: "mysecret help",
-            default: "default_secret",
             optional: true,
         },
     ],
