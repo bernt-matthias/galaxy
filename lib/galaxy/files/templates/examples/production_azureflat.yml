@@ -1,6 +1,6 @@
-- id: azure
+- id: azureflat
   version: 0
-  name: Azure Blob Storage
+  name: Azure Blob Storage Flat
   description: |
     Setup access to your [Azure Blob Storage](https://learn.microsoft.com/en-us/azure/storage/blobs/storage-blobs-introduction).
   configuration:
@@ -8,7 +8,6 @@
     container_name: "{{ variables.container_name }}"
     account_name: "{{ variables.account_name }}"
     account_key: "{{ secrets.account_key }}"
-    namespace_type: "{{ 'hierarchical' if variables.hierarchical else 'flat' }}"
     writable: "{{ variables.writable }}"
   variables:
     container_name:
@@ -23,20 +22,11 @@
       help: |
         The name of your Azure Blob Storage account. More information on containers can be found in the
         [Azure Storage documentation](https://learn.microsoft.com/en-us/azure/storage/common/storage-account-overview).
-    hierarchical:
-      label: Hierarchical?
-      type: boolean
-      optional: true
-      default: true
-      help: |
-        Is this storage hierarchical (e.g. does it use a Azure Data Lake Storage Gen2 hierarchical namespace)?
-        More information on Data Lake Storage namespaces can be found in the
-        [Azure Blob Storage documentation](https://learn.microsoft.com/en-us/azure/storage/blobs/data-lake-storage-namespace).
     writable:
       label: Writable?
       type: boolean
       optional: true
-      default: true
+      default: false
       help: Allow Galaxy to write data to this Azure Blob Storage container.
   secrets:
     account_key:
