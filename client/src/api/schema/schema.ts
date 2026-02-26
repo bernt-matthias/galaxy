@@ -12797,7 +12797,8 @@ export interface components {
                 | "rspace"
                 | "dataverse"
                 | "huggingface"
-                | "omero";
+                | "iiif"
+                | "omero"
                 | "ssh";
             /** Variables */
             variables?:
@@ -24404,7 +24405,8 @@ export interface components {
                 | "rspace"
                 | "dataverse"
                 | "huggingface"
-                | "omero";
+                | "iiif"
+                | "omero"
                 | "ssh";
             /** Uri Root */
             uri_root: string;
