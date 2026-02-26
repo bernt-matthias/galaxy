@@ -11601,6 +11601,7 @@ export interface components {
                 | "dataverse"
                 | "huggingface"
                 | "omero";
+                | "ssh";
             /** Variables */
             variables?:
                 | (
@@ -22508,6 +22509,7 @@ export interface components {
                 | "dataverse"
                 | "huggingface"
                 | "omero";
+                | "ssh";
             /** Uri Root */
             uri_root: string;
             /**
