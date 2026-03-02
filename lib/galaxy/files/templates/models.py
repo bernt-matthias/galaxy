@@ -164,7 +164,6 @@ class SshFileSourceTemplateConfiguration(StrictModel):
     timeout: Union[int, TemplateExpansion] = 10
     port: Union[int, TemplateExpansion] = 22
     compress: Union[bool, TemplateExpansion] = False
-    config_path: Union[str, TemplateExpansion] = "~/.ssh/config"
     path: Union[str, TemplateExpansion]
     writable: Union[bool, TemplateExpansion] = False
     template_start: Optional[str] = None
@@ -180,7 +179,6 @@ class SshFileSourceConfiguration(StrictModel):
     timeout: int = 10
     port: int = 22
     compress: bool = False
-    config_path: str = "~/.ssh/config"
     path: str
     writable: bool = False
 
