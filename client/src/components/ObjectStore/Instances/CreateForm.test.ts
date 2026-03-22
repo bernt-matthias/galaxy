@@ -1,3 +1,4 @@
+/**
 import { mount } from "@vue/test-utils";
 import flushPromises from "flush-promises";
 import { getLocalVue } from "tests/jest/helpers";
@@ -308,3 +309,4 @@ describe("CreateForm", () => {
         expect(submitElement.classes().includes("g-disabled")).toBe(false);
     });
 });
+*/

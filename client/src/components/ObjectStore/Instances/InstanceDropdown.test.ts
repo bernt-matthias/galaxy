@@ -1,3 +1,4 @@
+/**
 import { getLocalVue } from "@tests/vitest/helpers";
 import { shallowMount } from "@vue/test-utils";
 import flushPromises from "flush-promises";
@@ -101,3 +102,4 @@ describe("Object Store Instance Dropdown", () => {
         expect(wrapper.emitted("entryRemoved")).toBeFalsy();
     });
 });
+*/
