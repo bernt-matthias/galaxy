@@ -21156,6 +21156,8 @@ export interface components {
             help?: string | null;
             /** Label */
             label?: string | null;
+            /** Multiline */
+            multiline?: boolean | null;
             /** Name */
             name: string;
             /** Optional */
@@ -21169,6 +21171,8 @@ export interface components {
             help?: string | null;
             /** Label */
             label?: string | null;
+            /** Multiline */
+            multiline?: boolean | null;
             /** Name */
             name: string;
             /** Optional */
@@ -21195,6 +21199,8 @@ export interface components {
             help?: string | null;
             /** Label */
             label?: string | null;
+            /** Multiline */
+            multiline?: boolean | null;
             /** Name */
             name: string;
             /** Optional */
@@ -21221,6 +21227,8 @@ export interface components {
             help?: string | null;
             /** Label */
             label?: string | null;
+            /** Multiline */
+            multiline?: boolean | null;
             /** Name */
             name: string;
             /** Optional */
@@ -21247,6 +21255,8 @@ export interface components {
             help?: string | null;
             /** Label */
             label?: string | null;
+            /** Multiline */
+            multiline?: boolean | null;
             /** Name */
             name: string;
             /** Optional */
