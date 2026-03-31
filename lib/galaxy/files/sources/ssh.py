@@ -98,15 +98,15 @@ class SshFilesSource(FsspecFilesSource[SshFileSourceTemplateConfiguration, SshFi
         )
         return fs
 
-    def _to_filesystem_path(self, path: str) -> str:
-        base = self.template_config.path.rstrip("/")
+    def _to_filesystem_path(self, path: str, config: SshFileSourceConfiguration) -> str:
+        base = config.path.rstrip("/")
         relative = path.lstrip("/")
         if not relative:
             return base or "/"
         return f"{base}/{relative}"
 
-    def _adapt_entry_path(self, filesystem_path: str) -> str:
-        base = self.template_config.path.rstrip("/")
+    def _adapt_entry_path(self, filesystem_path: str, config: SshFileSourceConfiguration) -> str:
+        base = config.path.rstrip("/")
         if base and filesystem_path.startswith(base):
             virtual_path = filesystem_path[len(base) :]
             if not virtual_path:
